@@ -5,7 +5,6 @@ import {
   ArrowRight,
   BatteryCharging,
   Cable,
-  CheckCircle2,
   ChevronDown,
   Clock3,
   Cpu,
@@ -102,76 +101,6 @@ const getFallbackImages = (): SectionImages => ({
     'ev-charging': '/generated/service-ev-charging.png',
   },
 });
-
-const requestGeneratedImage = async (prompt: string, size = '1536x1024') => {
-  const response = await fetch('/api/generate-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, size }),
-  });
-
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(payload?.error || 'Image generation failed.');
-  }
-
-  const payload = await response.json();
-  return payload.image as string;
-};
-
-const getImagePrompts = () => ({
-  hero: [
-    'Luxury Miami residence with a licensed electrician inspecting a modern electrical panel, premium interior lighting, clean composition, realistic photography, no text.',
-    'Professional electrician troubleshooting wiring in a bright modern home, organized cables, safety equipment visible, cinematic but realistic, no text.',
-    'Electric vehicle charging station being installed in an upscale garage, sleek electrical components, premium residential setting, realistic photography, no text.',
-  ],
-  about:
-    'Exterior of a modern Miami home at blue hour with architectural lighting and a subtle sense of high-end electrical craftsmanship, realistic photography, no text.',
-  services: {
-    emergency: 'Emergency residential electrical service in progress, electrician with testing tools and open panel, urgent but professional atmosphere, realistic photography, no text.',
-    generators: 'Backup generator installed beside a contemporary Florida home, clean landscaping and electrical conduit details, realistic photography, no text.',
-    wiring: 'Detailed residential electrical wiring installation with organized conduits and precise craftsmanship, realistic photography, no text.',
-    panels: 'Upgraded electrical panel with labeled breakers, neat cable management, clean professional finish, realistic photography, no text.',
-    lighting: 'High-end indoor lighting installation in a contemporary living room, warm layered light, elegant fixtures, realistic photography, no text.',
-    'ev-charging': 'Home EV charger mounted in a refined garage, premium electric vehicle nearby, clean installation, realistic photography, no text.',
-  },
-});
-
-const generateSectionImages = async () => {
-  const fallback = getFallbackImages();
-  const prompts = getImagePrompts();
-
-  try {
-    const hero = await Promise.all(
-      prompts.hero.map(async (prompt, index) => {
-        try {
-          return await requestGeneratedImage(prompt);
-        } catch {
-          return fallback.hero[index];
-        }
-      }),
-    );
-
-    const about = await requestGeneratedImage(prompts.about, '1024x1024').catch(() => fallback.about);
-    const serviceEntries = await Promise.all(
-      Object.entries(prompts.services).map(async ([key, prompt]) => {
-        try {
-          return [key, await requestGeneratedImage(prompt, '1024x1024')] as const;
-        } catch {
-          return [key, fallback.services[key] || fallback.about] as const;
-        }
-      }),
-    );
-
-    return {
-      hero,
-      about,
-      services: Object.fromEntries(serviceEntries),
-    };
-  } catch {
-    return fallback;
-  }
-};
 
 const ParticleBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -412,22 +341,22 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
   const reduceMotion = useReducedMotion();
   const ui = lang === 'EN'
     ? {
-        badge: 'Field-ready visuals',
-        body: 'Each visual now matches the actual section copy.',
+        badge: 'Licensed electrical service',
+        body: 'Residential, commercial, and industrial work with fast scheduling and clear communication.',
         certifiedTitle: 'Certified work',
         certifiedBody: 'Panels, circuits, lighting, and high-priority repairs handled with code-first discipline.',
         contactTitle: 'Fast contact',
         contactBody: 'Clear next steps, quick scheduling, and emergency availability when the issue cannot wait.',
-        inspect: 'Interactive service preview',
+        inspect: 'Local licensed team',
       }
     : {
-        badge: 'Visuales por servicio',
-        body: 'Cada imagen ahora corresponde al copy real de su seccion.',
+        badge: 'Servicio electrico con licencia',
+        body: 'Trabajo residencial, comercial e industrial con agenda rapida y comunicacion clara.',
         certifiedTitle: 'Trabajo certificado',
         certifiedBody: 'Paneles, circuitos, iluminacion y reparaciones prioritarias ejecutadas con criterio de codigo.',
         contactTitle: 'Contacto rapido',
         contactBody: 'Pasos claros, agenda rapida y disponibilidad para emergencias cuando el problema no puede esperar.',
-        inspect: 'Vista previa interactiva',
+        inspect: 'Equipo local con licencia',
       };
 
   return (
@@ -530,7 +459,7 @@ const AboutSection = ({ content, image, lang }: { content: Content; image: strin
             <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-6 text-white">
               <div>
                 <div className="text-xs uppercase tracking-[0.25em] text-[#86ECFF]">{lang === 'EN' ? 'Service standard' : 'Estandar de servicio'}</div>
-                <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Clean installs, safe execution, premium finish.' : 'Instalaciones limpias, ejecucion segura y acabado premium.'}</div>
+                <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Clean installs, safe execution, and code-compliant results.' : 'Instalaciones limpias, ejecucion segura y resultados conforme al codigo.'}</div>
               </div>
               <div className="hidden rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 md:block">Miami, FL</div>
             </div>
@@ -674,26 +603,9 @@ export default function App() {
   const [lang, setLang] = useState<'EN' | 'ES'>('EN');
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [images, setImages] = useState<SectionImages>(getFallbackImages);
-  const [isLoadingImages, setIsLoadingImages] = useState(true);
   const [lightboxItem, setLightboxItem] = useState<LightboxState>(null);
 
   const content = useMemo(() => (lang === 'EN' ? EN : ES), [lang]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadImages = async () => {
-      setIsLoadingImages(true);
-      const generated = await generateSectionImages();
-      if (isMounted) {
-        setImages(generated);
-        setIsLoadingImages(false);
-      }
-    };
-    loadImages();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -716,14 +628,6 @@ export default function App() {
     <div className="min-h-screen bg-white text-dark">
       <Navbar lang={lang} setLang={setLang} content={content} />
       <HeroSection content={content} images={images} currentHeroIndex={currentHeroIndex} lang={lang} />
-
-      <div className="border-y border-dark/6 bg-[#F5FBFF] px-4 py-5 md:px-6">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm font-semibold uppercase tracking-[0.22em] text-dark/48">
-          <span className="inline-flex items-center gap-2 text-primary"><CheckCircle2 size={18} />{lang === 'EN' ? 'Visual refresh by section' : 'Actualizacion visual por seccion'}</span>
-          <span>{lang === 'EN' ? 'Palette preserved from the current site' : 'Paleta conservada del sitio actual'}</span>
-          <span>{isLoadingImages ? (lang === 'EN' ? 'Generating local visuals...' : 'Generando visuales locales...') : (lang === 'EN' ? 'Image prompts loaded for local preview' : 'Prompts de imagen listos para la vista local')}</span>
-        </div>
-      </div>
 
       <AboutSection content={content} image={images.about} lang={lang} />
       <ServicesSection content={content} images={images.services} lang={lang} onPreview={setLightboxItem} />

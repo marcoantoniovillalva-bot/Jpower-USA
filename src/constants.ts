@@ -58,7 +58,7 @@ export const EN: Content = {
   services: {
     eyebrow: 'Built around the real requests we handle every week',
     title: 'Electrical services designed for speed, clarity, and long-term reliability.',
-    subtitle: 'Each section is paired with imagery generated around the actual service copy to keep the site specific and relevant.',
+    subtitle: 'From emergency calls to panel upgrades and EV charging, we handle the work clients request most.',
     items: [
       { id: 'emergency', title: 'Emergency', description: 'Rapid response for urgent electrical issues, ensuring safety and immediate solutions.', icon: 'Zap', featured: true },
       { id: 'generators', title: 'Generators', description: 'Installation and maintenance of backup generators to keep your power running during outages.', icon: 'Power', featured: true },
@@ -154,7 +154,7 @@ export const ES: Content = {
   services: {
     eyebrow: 'Pensado alrededor de las solicitudes reales que atendemos cada semana',
     title: 'Servicios electricos disenados para rapidez, claridad y confiabilidad a largo plazo.',
-    subtitle: 'Cada seccion se acompana con imagenes generadas a partir del copy real del servicio para mantener el sitio especifico y relevante.',
+    subtitle: 'Desde emergencias hasta paneles electricos y cargadores EV, resolvemos los trabajos que mas nos solicitan.',
     items: [
       { id: 'emergency', title: 'Emergencia', description: 'Respuesta rapida para problemas electricos urgentes, garantizando seguridad y soluciones inmediatas.', icon: 'Zap', featured: true },
       { id: 'generators', title: 'Generadores', description: 'Instalacion y mantenimiento de generadores de respaldo para mantener su energia durante apagones.', icon: 'Power', featured: true },
