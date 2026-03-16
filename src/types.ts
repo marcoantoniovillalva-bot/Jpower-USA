@@ -17,6 +17,19 @@ export interface ServiceItem {
   featured?: boolean;
 }
 
+export interface TestimonialItem {
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+}
+
+export interface HowItWorksStep {
+  number: string;
+  title: string;
+  description: string;
+}
+
 export interface Content {
   nav: {
     services: string;
@@ -48,6 +61,18 @@ export interface Content {
     title: string;
     subtitle: string;
     items: ServiceItem[];
+  };
+  howItWorks: {
+    eyebrow: string;
+    title: string;
+    steps: HowItWorksStep[];
+  };
+  testimonials: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    cta: string;
+    items: TestimonialItem[];
   };
   faq: {
     title: string;

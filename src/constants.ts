@@ -9,7 +9,7 @@ export const EN: Content = {
   },
   hero: {
     eyebrow: 'Licensed electrical contractors in Miami',
-    title: 'Licensed electrical help for urgent calls, upgrades, and remodels.',
+    title: "Miami's electrical work, done right the first time.",
     subtitle:
       'From panel upgrades to EV chargers, we solve electrical work that needs to be safe, fast, and code-compliant.',
     cta: 'Call Now',
@@ -73,8 +73,56 @@ export const EN: Content = {
       { id: 'switches-outlets', title: 'Switches & Outlets', description: 'Installation and repair of switches and outlets for smooth and safe electrical access.', icon: 'ToggleRight' },
     ],
   },
+  howItWorks: {
+    eyebrow: '03 How It Works',
+    title: 'From first call to finished work in four clear steps.',
+    steps: [
+      { number: '01', title: 'Call or Message', description: 'Reach us by phone or WhatsApp in seconds. We answer fast and guide you to the right next step.' },
+      { number: '02', title: 'On-Site Diagnosis', description: 'We arrive prepared, assess the issue thoroughly, and explain what needs to be done in plain language.' },
+      { number: '03', title: 'Clear Quote', description: 'You receive a transparent estimate with zero hidden costs before any work begins.' },
+      { number: '04', title: 'Work + Warranty', description: 'We complete the job to code, clean up, and back every installation with a 1-year workmanship warranty.' },
+    ],
+  },
+  testimonials: {
+    eyebrow: '04 Client Reviews',
+    title: 'What clients say about working with us.',
+    subtitle: '5.0 · 86 Google reviews',
+    cta: 'See all reviews on Google',
+    items: [
+      {
+        name: 'Mari Cabrera',
+        role: 'Local Guide · Google',
+        text: 'Jesus was punctual and polite! After 2 months with no light in our living room and dining room and calling multiple no show electricians, I was grateful for his attention and professionalism. He got the job done with ease and made sure I knew what needed to be replaced. I highly recommend him and will be using his services again.',
+        rating: 5,
+      },
+      {
+        name: 'Lien Perez',
+        role: 'Local Guide · Google',
+        text: 'Tuve una experiencia fantástica con JPower Electric! Tuvimos un problema electrico en casa los llame y contesto Jesús Hernandez le explique lo que sucedia y en menos de una hora estaba en mi puerta para hacer un diagnóstico del problema, lo explicó todo con claridad y mucho conocimiento. Realizo el trabajo sin ningún problema de principio a fin con un precio razonable. Realmente se preocupa por brindar un servicio excelente.',
+        rating: 5,
+      },
+      {
+        name: 'Fany Hernandez',
+        role: 'Google',
+        text: 'Quiero destacar el excelente trabajo realizado por este electricista. Su profesionalismo, puntualidad y atención al detalle superaron todas mis expectativas. Desde el primer contacto hasta la finalización del proyecto, demostró gran conocimiento y compromiso, solucionando cualquier inconveniente de forma rápida y eficiente. Sin duda, recomendaría sus servicios a quien busque calidad y confianza en el área eléctrica. ¡Gracias por un trabajo impecable!',
+        rating: 5,
+      },
+      {
+        name: 'Roberto Rojas',
+        role: 'Google',
+        text: 'Estoy muy complacido con el servicio de esta compañía, me instalaron las luces que necesitamos sin daños, fueron puntuales y muy profesionales, es difícil de encontrar en estos días, los recomiendo y me he convertido en su cliente siempre que necesite cualquier trabajo de electricidad.',
+        rating: 5,
+      },
+      {
+        name: 'Ariel Nieto',
+        role: 'Local Guide · Google',
+        text: 'Muy buen servicio, nos instalo las luces del techo nuevas LED. Puntual y muy calificado para este trabajo.',
+        rating: 5,
+      },
+    ],
+  },
   faq: {
-    title: '03 Common Questions',
+    title: '05 Common Questions',
     items: [
       { question: 'Are you licensed and insured?', answer: 'Yes. JPower Electric is certified by the State of Florida and carries insurance coverage for residential and commercial work.' },
       { question: 'Do you offer emergency services?', answer: 'Yes. We handle urgent issues that need a fast, safety-first response and clear next steps on site.' },
@@ -83,7 +131,7 @@ export const EN: Content = {
     ],
   },
   contact: {
-    eyebrow: '04 Request A Quote',
+    eyebrow: '06 Request A Quote',
     title: 'Start the conversation on WhatsApp and get a faster estimate.',
     description: 'Send us photos, project details, or the problem you are facing. We will guide you to the right service and next step.',
     name: 'Full Name',
@@ -105,7 +153,7 @@ export const ES: Content = {
   },
   hero: {
     eyebrow: 'Contratistas eléctricos con licencia en Miami',
-    title: 'Ayuda eléctrica con licencia para urgencias, mejoras y remodelaciones.',
+    title: 'Electricidad en Miami, bien hecha desde el primer momento.',
     subtitle:
       'Desde paneles eléctricos hasta cargadores EV, resolvemos trabajos que deben hacerse de forma segura, rápida y conforme al código.',
     cta: 'Llamar Ahora',
@@ -169,8 +217,56 @@ export const ES: Content = {
       { id: 'switches-outlets', title: 'Interruptores y Tomas', description: 'Instalación y reparación de interruptores y tomas para un acceso eléctrico seguro y fluido.', icon: 'ToggleRight' },
     ],
   },
+  howItWorks: {
+    eyebrow: '03 Cómo Funciona',
+    title: 'Del primer contacto al trabajo terminado en cuatro pasos claros.',
+    steps: [
+      { number: '01', title: 'Llama o Escribe', description: 'Contáctanos por teléfono o WhatsApp en segundos. Respondemos rápido y te orientamos al siguiente paso.' },
+      { number: '02', title: 'Diagnóstico en Sitio', description: 'Llegamos preparados, evaluamos el problema a fondo y te explicamos qué se necesita en términos simples.' },
+      { number: '03', title: 'Presupuesto Claro', description: 'Recibes una estimación directa sin costos ocultos antes de que comience cualquier trabajo.' },
+      { number: '04', title: 'Trabajo + Garantía', description: 'Terminamos conforme al código, dejamos todo limpio y respaldamos cada instalación con garantía de un año.' },
+    ],
+  },
+  testimonials: {
+    eyebrow: '04 Reseñas de Clientes',
+    title: 'Lo que dicen nuestros clientes.',
+    subtitle: '5.0 · 86 reseñas en Google',
+    cta: 'Ver todas las reseñas en Google',
+    items: [
+      {
+        name: 'Mari Cabrera',
+        role: 'Local Guide · Google',
+        text: 'Jesús fue puntual y agradable. Después de dos meses sin luz en nuestra sala y comedor, y despues de llamar a varios electricistas que nunca aparecieron, estaba muy agradecida por su atención y profesionalismo. Terminó el trabajo con facilidad y se aseguró de explicarme lo que necesitaba ser reemplazado. Lo recomiendo muchísimo y volveré a usar sus servicios.',
+        rating: 5,
+      },
+      {
+        name: 'Lien Perez',
+        role: 'Local Guide · Google',
+        text: 'Tuve una experiencia fantástica con JPower Electric! Tuvimos un problema electrico en casa los llame y contesto Jesús Hernandez le explique lo que sucedia y en menos de una hora estaba en mi puerta para hacer un diagnóstico del problema, lo explicó todo con claridad y mucho conocimiento. Realizo el trabajo sin ningún problema de principio a fin con un precio razonable. Realmente se preocupa por brindar un servicio excelente.',
+        rating: 5,
+      },
+      {
+        name: 'Fany Hernandez',
+        role: 'Google',
+        text: 'Quiero destacar el excelente trabajo realizado por este electricista. Su profesionalismo, puntualidad y atención al detalle superaron todas mis expectativas. Desde el primer contacto hasta la finalización del proyecto, demostró gran conocimiento y compromiso, solucionando cualquier inconveniente de forma rápida y eficiente. Sin duda, recomendaría sus servicios a quien busque calidad y confianza en el área eléctrica. ¡Gracias por un trabajo impecable!',
+        rating: 5,
+      },
+      {
+        name: 'Roberto Rojas',
+        role: 'Google',
+        text: 'Estoy muy complacido con el servicio de esta compañía, me instalaron las luces que necesitamos sin daños, fueron puntuales y muy profesionales, es difícil de encontrar en estos días, los recomiendo y me he convertido en su cliente siempre que necesite cualquier trabajo de electricidad.',
+        rating: 5,
+      },
+      {
+        name: 'Ariel Nieto',
+        role: 'Local Guide · Google',
+        text: 'Muy buen servicio, nos instalo las luces del techo nuevas LED. Puntual y muy calificado para este trabajo.',
+        rating: 5,
+      },
+    ],
+  },
   faq: {
-    title: '03 Preguntas Comunes',
+    title: '05 Preguntas Comunes',
     items: [
       { question: '¿Están licenciados y asegurados?', answer: 'Sí. JPower Electric está certificado por el Estado de Florida y cuenta con cobertura de seguro para trabajos residenciales y comerciales.' },
       { question: '¿Ofrecen servicios de emergencia?', answer: 'Sí. Atendemos problemas urgentes con una respuesta rápida, segura y con pasos claros en sitio.' },
@@ -179,7 +275,7 @@ export const ES: Content = {
     ],
   },
   contact: {
-    eyebrow: '04 Pide Tu Presupuesto',
+    eyebrow: '06 Pide Tu Presupuesto',
     title: 'Escríbenos por WhatsApp y recibe una estimación más rápida.',
     description: 'Envía fotos, detalles del proyecto o el problema que tienes. Te guiamos al servicio correcto y al siguiente paso.',
     name: 'Nombre Completo',

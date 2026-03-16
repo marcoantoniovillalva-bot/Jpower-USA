@@ -26,7 +26,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CONTACT_INFO, EN, ES } from './constants';
-import type { Content, ServiceItem } from './types';
+import type { Content, HowItWorksStep, ServiceItem, TestimonialItem } from './types';
 
 type SectionImages = {
   hero: string[];
@@ -551,6 +551,138 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
   );
 };
 
+const TrustBar = ({ lang }: { lang: 'EN' | 'ES' }) => {
+  const items = lang === 'EN'
+    ? [
+        { icon: ShieldCheck, label: 'State of Florida Licensed' },
+        { icon: ShieldCheck, label: 'Fully Insured' },
+        { icon: ShieldCheck, label: '1-Year Workmanship Warranty' },
+        { icon: ShieldCheck, label: '5.0 ★ · 86 Google Reviews' },
+        { icon: ShieldCheck, label: 'Emergency Service Available' },
+      ]
+    : [
+        { icon: ShieldCheck, label: 'Licencia del Estado de Florida' },
+        { icon: ShieldCheck, label: 'Completamente Asegurado' },
+        { icon: ShieldCheck, label: 'Garantía de Mano de Obra 1 Año' },
+        { icon: ShieldCheck, label: '5.0 ★ · 86 Reseñas en Google' },
+        { icon: ShieldCheck, label: 'Servicio de Emergencia Disponible' },
+      ];
+
+  return (
+    <div className="border-y border-dark/8 bg-white px-4 py-4 md:px-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:justify-between">
+          {items.map((item) => (
+            <div key={item.label} className="flex items-center gap-2 text-sm font-medium text-dark/70">
+              <item.icon size={15} className="shrink-0 text-primary" />
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HowItWorksSection = ({ content }: { content: Content }) => (
+  <section className="relative overflow-hidden px-4 py-20 md:px-6 md:py-24">
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,144,198,0.07),transparent_32%)]" />
+    <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-3xl text-center">
+        <span className="eyebrow">{content.howItWorks.eyebrow}</span>
+        <h2 className="section-title mt-6 text-dark">{content.howItWorks.title}</h2>
+      </div>
+
+      <div className="relative mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Connector line — desktop only */}
+        <div className="pointer-events-none absolute left-[12.5%] right-[12.5%] top-10 hidden h-px bg-[linear-gradient(90deg,transparent,rgba(0,144,198,0.3),rgba(0,144,198,0.3),transparent)] lg:block" />
+
+        {content.howItWorks.steps.map((step: HowItWorksStep, index: number) => (
+          <motion.div
+            key={step.number}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+            className="relative flex flex-col items-center text-center"
+          >
+            <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] border border-primary/20 bg-white shadow-[0_12px_40px_rgba(0,144,198,0.12)]">
+              <span className="font-display text-2xl font-bold text-primary">{step.number}</span>
+              <div className="absolute -inset-px rounded-[1.75rem] bg-[linear-gradient(135deg,rgba(0,144,198,0.15),transparent_60%)]" />
+            </div>
+            <h3 className="text-xl font-semibold tracking-[-0.03em] text-dark">{step.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-dark/60">{step.description}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const StarRating = ({ rating }: { rating: number }) => (
+  <div className="flex gap-0.5">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <svg key={i} viewBox="0 0 16 16" width="14" height="14" fill={i < rating ? '#F59E0B' : 'none'} stroke={i < rating ? '#F59E0B' : '#D1D5DB'} strokeWidth="1.2">
+        <path d="M8 1l1.8 3.6 4 .6-2.9 2.8.7 4L8 10l-3.6 1.9.7-4L2.2 5.2l4-.6z" />
+      </svg>
+    ))}
+  </div>
+);
+
+const TestimonialsSection = ({ content }: { content: Content }) => (
+  <section className="relative overflow-hidden bg-dark px-4 py-20 text-white md:px-6 md:py-24">
+    <TechLines soft />
+    <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(0,144,198,0.15),transparent_70%)]" />
+    <div className="mx-auto max-w-7xl">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <span className="eyebrow border-white/12 bg-white/8 text-[#86ECFF]">{content.testimonials.eyebrow}</span>
+          <h2 className="section-title mt-6 text-white">{content.testimonials.title}</h2>
+        </div>
+        <a
+          href="https://www.google.com/search?q=JPower+Electric+Miami+reviews"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/15 bg-white/8 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/14 hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" className="shrink-0">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          {content.testimonials.subtitle}
+        </a>
+      </div>
+
+      <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {content.testimonials.items.map((item: TestimonialItem, index: number) => (
+          <motion.div
+            key={item.name}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.08 }}
+            className="flex flex-col rounded-[2rem] border border-white/10 bg-white/6 p-6 backdrop-blur-sm"
+          >
+            <StarRating rating={item.rating} />
+            <p className="mt-4 flex-1 text-sm leading-7 text-white/76">&ldquo;{item.text}&rdquo;</p>
+            <div className="mt-6 flex items-center gap-3 border-t border-white/8 pt-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 font-display text-sm font-bold text-[#86ECFF]">
+                {item.name.charAt(0)}
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">{item.name}</div>
+                <div className="text-xs text-white/46">{item.role}</div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
 const ContactSection = ({ content, heroImage, lang }: { content: Content; heroImage: string; lang: 'EN' | 'ES' }) => (
   <section id="contact" className="relative overflow-hidden bg-[#031137] px-4 py-20 text-white md:px-6 md:py-24">
     <TechLines soft />
@@ -636,9 +768,12 @@ export default function App() {
     <div className="min-h-screen bg-white text-dark">
       <Navbar lang={lang} setLang={setLang} content={content} />
       <HeroSection content={content} images={images} currentHeroIndex={currentHeroIndex} lang={lang} />
+      <TrustBar lang={lang} />
 
       <AboutSection content={content} image={images.about} lang={lang} />
       <ServicesSection content={content} images={images.services} lang={lang} onPreview={setDetailItem} />
+      <HowItWorksSection content={content} />
+      <TestimonialsSection content={content} />
 
       <section id="faq" className="px-4 py-20 md:px-6 md:py-24">
         <div className="mx-auto max-w-4xl">
@@ -656,13 +791,71 @@ export default function App() {
 
       <ContactSection content={content} heroImage={images.hero[0]} lang={lang} />
 
-      <footer className="border-t border-white/8 bg-dark px-4 py-10 text-white/48 md:px-6">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <Brand lang={lang} />
-          <div className="flex flex-wrap gap-6 text-sm">
-            <a href="#about" className="transition hover:text-white">{content.nav.about}</a>
-            <a href="#services" className="transition hover:text-white">{content.nav.services}</a>
-            <a href="#contact" className="transition hover:text-white">{content.nav.contact}</a>
+      <footer className="border-t border-white/8 bg-dark px-4 pt-14 pb-8 text-white md:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+            {/* Brand + description */}
+            <div className="lg:col-span-2">
+              <Brand lang={lang} />
+              <p className="mt-5 max-w-xs text-sm leading-7 text-white/46">
+                {lang === 'EN'
+                  ? 'Licensed electrical contractors serving Miami and surrounding areas. Residential, commercial, and industrial.'
+                  : 'Contratistas eléctricos con licencia que sirven Miami y sus alrededores. Residencial, comercial e industrial.'}
+              </p>
+              <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#86ECFF]">
+                <ShieldCheck size={15} />
+                {lang === 'EN' ? 'State of Florida Licensed & Insured' : 'Licencia del Estado de Florida · Asegurado'}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div>
+              <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-white/40">{lang === 'EN' ? 'Navigation' : 'Navegación'}</h4>
+              <ul className="space-y-3 text-sm text-white/60">
+                <li><a href="#about" className="transition hover:text-white">{content.nav.about}</a></li>
+                <li><a href="#services" className="transition hover:text-white">{content.nav.services}</a></li>
+                <li><a href="#faq" className="transition hover:text-white">{content.nav.faq}</a></li>
+                <li><a href="#contact" className="transition hover:text-white">{content.nav.contact}</a></li>
+              </ul>
+            </div>
+
+            {/* Contact info */}
+            <div>
+              <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-white/40">{lang === 'EN' ? 'Contact' : 'Contacto'}</h4>
+              <ul className="space-y-3 text-sm text-white/60">
+                <li>
+                  <a href={`tel:${CONTACT_INFO.phone}`} className="flex items-center gap-2 transition hover:text-white">
+                    <Phone size={13} className="shrink-0 text-primary" />
+                    {CONTACT_INFO.phone}
+                  </a>
+                </li>
+                <li>
+                  <a href={`mailto:${CONTACT_INFO.email}`} className="flex items-center gap-2 transition hover:text-white">
+                    <Mail size={13} className="shrink-0 text-primary" />
+                    {CONTACT_INFO.email}
+                  </a>
+                </li>
+                <li className="flex items-center gap-2">
+                  <MapPin size={13} className="shrink-0 text-primary" />
+                  {CONTACT_INFO.address}
+                </li>
+                <li>
+                  <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition hover:text-white">
+                    <Facebook size={13} className="shrink-0 text-primary" />
+                    Facebook
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 flex flex-col gap-4 border-t border-white/8 pt-8 md:flex-row md:items-center md:justify-between">
+            <p className="text-xs text-white/32">
+              © {new Date().getFullYear()} JPower Electric. {lang === 'EN' ? 'All rights reserved.' : 'Todos los derechos reservados.'}
+            </p>
+            <p className="text-xs text-white/32">
+              {lang === 'EN' ? 'State of Florida Licensed · Fully Insured · 1-Year Warranty' : 'Licencia Estado de Florida · Asegurado · Garantía 1 Año'}
+            </p>
           </div>
         </div>
       </footer>
