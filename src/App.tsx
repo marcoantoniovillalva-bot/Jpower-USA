@@ -629,59 +629,99 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
-const TestimonialsSection = ({ content }: { content: Content }) => (
-  <section className="relative overflow-hidden bg-dark px-4 py-20 text-white md:px-6 md:py-24">
-    <TechLines soft />
-    <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(0,144,198,0.15),transparent_70%)]" />
-    <div className="mx-auto max-w-7xl">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <span className="eyebrow border-white/12 bg-white/8 text-[#86ECFF]">{content.testimonials.eyebrow}</span>
-          <h2 className="section-title mt-6 text-white">{content.testimonials.title}</h2>
-        </div>
-        <a
-          href="https://www.google.com/search?q=JPower+Electric+Miami+reviews"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/15 bg-white/8 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/14 hover:text-white"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" className="shrink-0">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          {content.testimonials.subtitle}
-        </a>
-      </div>
-
-      <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {content.testimonials.items.map((item: TestimonialItem, index: number) => (
-          <motion.div
-            key={item.name}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.08 }}
-            className="flex flex-col rounded-[2rem] border border-white/10 bg-white/6 p-6 backdrop-blur-sm"
-          >
-            <StarRating rating={item.rating} />
-            <p className="mt-4 flex-1 text-sm leading-7 text-white/76">&ldquo;{item.text}&rdquo;</p>
-            <div className="mt-6 flex items-center gap-3 border-t border-white/8 pt-5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 font-display text-sm font-bold text-[#86ECFF]">
-                {item.name.charAt(0)}
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-white">{item.name}</div>
-                <div className="text-xs text-white/46">{item.role}</div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </section>
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" className="shrink-0">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
 );
+
+const TestimonialsSection = ({ content }: { content: Content }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const card = scrollRef.current.querySelector<HTMLElement>('[data-card]');
+    const amount = card ? card.offsetWidth + 20 : 360;
+    scrollRef.current.scrollBy({ left: dir === 'right' ? amount : -amount, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="relative overflow-hidden bg-dark px-4 py-20 text-white md:px-6 md:py-24">
+      <TechLines soft />
+      <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(0,144,198,0.15),transparent_70%)]" />
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow border-white/12 bg-white/8 text-[#86ECFF]">{content.testimonials.eyebrow}</span>
+            <h2 className="section-title mt-6 text-white">{content.testimonials.title}</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Arrow buttons */}
+            <button
+              onClick={() => scroll('left')}
+              aria-label="Previous review"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white/70 transition hover:bg-white/14 hover:text-white"
+            >
+              <ChevronDown className="rotate-90" size={20} />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              aria-label="Next review"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white/70 transition hover:bg-white/14 hover:text-white"
+            >
+              <ChevronDown className="-rotate-90" size={20} />
+            </button>
+            {/* Google link */}
+            <a
+              href="https://www.google.com/search?q=JPower+Electric+Miami+reviews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/14 hover:text-white"
+            >
+              <GoogleIcon />
+              {content.testimonials.subtitle}
+            </a>
+          </div>
+        </div>
+
+        {/* Horizontal scroll track */}
+        <div
+          ref={scrollRef}
+          className="mt-12 flex gap-5 overflow-x-auto pb-3"
+          style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {content.testimonials.items.map((item: TestimonialItem, index: number) => (
+            <motion.div
+              key={item.name}
+              data-card
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.07 }}
+              className="flex w-[300px] shrink-0 flex-col rounded-[2rem] border border-white/10 bg-white/6 p-6 backdrop-blur-sm md:w-[360px]"
+              style={{ scrollSnapAlign: 'start' }}
+            >
+              <StarRating rating={item.rating} />
+              <p className="mt-4 flex-1 text-sm leading-7 text-white/76">&ldquo;{item.text}&rdquo;</p>
+              <div className="mt-6 flex items-center gap-3 border-t border-white/8 pt-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 font-display text-sm font-bold text-[#86ECFF]">
+                  {item.name.charAt(0)}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-white">{item.name}</div>
+                  <div className="text-xs text-white/46">{item.role}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const ContactSection = ({ content, heroImage, lang }: { content: Content; heroImage: string; lang: 'EN' | 'ES' }) => (
   <section id="contact" className="relative overflow-hidden bg-[#031137] px-4 py-20 text-white md:px-6 md:py-24">
