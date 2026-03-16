@@ -486,7 +486,7 @@ const ServicesSection = ({ content, images, lang, onPreview }: { content: Conten
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#86ECFF]">{lang === 'EN' ? 'Featured' : 'Destacado'}</div>
                   <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{service.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-white/68">{service.description}</p>
-                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white/86"><Search size={15} />{lang === 'EN' ? 'Click to expand image' : 'Haz clic para ampliar la imagen'}</div>
+                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white/86"><ArrowRight size={15} />{lang === 'EN' ? 'Click to expand image' : 'Haz clic para ampliar la imagen'}</div>
                 </div>
               </div>
             </motion.button>
