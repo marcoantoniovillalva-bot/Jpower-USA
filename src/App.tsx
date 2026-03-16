@@ -20,9 +20,7 @@ import {
   Phone,
   PlusCircle,
   Power,
-  Search,
   ShieldCheck,
-  Sparkles,
   ToggleRight,
   Wind,
   Wrench,
@@ -341,22 +339,16 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
   const reduceMotion = useReducedMotion();
   const ui = lang === 'EN'
     ? {
-        badge: 'Licensed electrical service',
-        body: 'Residential, commercial, and industrial work with fast scheduling and clear communication.',
         certifiedTitle: 'Certified work',
         certifiedBody: 'Panels, circuits, lighting, and high-priority repairs handled with code-first discipline.',
         contactTitle: 'Fast contact',
         contactBody: 'Clear next steps, quick scheduling, and emergency availability when the issue cannot wait.',
-        inspect: 'Local licensed team',
       }
     : {
-        badge: 'Servicio electrico con licencia',
-        body: 'Trabajo residencial, comercial e industrial con agenda rapida y comunicacion clara.',
         certifiedTitle: 'Trabajo certificado',
         certifiedBody: 'Paneles, circuitos, iluminacion y reparaciones prioritarias ejecutadas con criterio de codigo.',
         contactTitle: 'Contacto rapido',
         contactBody: 'Pasos claros, agenda rapida y disponibilidad para emergencias cuando el problema no puede esperar.',
-        inspect: 'Equipo local con licencia',
       };
 
   return (
@@ -404,19 +396,6 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
         </div>
 
         <div className="grid gap-4 lg:pb-3">
-          <div className="glass-card overflow-hidden rounded-[2.25rem] bg-white/12 p-4 text-white">
-            <div className="relative overflow-hidden rounded-[1.65rem] border border-white/12">
-              <img src={images.hero[currentHeroIndex]} alt="Current electrical service highlight" className="aspect-[4/3] w-full object-cover" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.02)_0%,rgba(0,7,43,0.64)_100%)]" />
-              <div className="absolute inset-0 border border-white/10" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#86ECFF]"><Sparkles size={14} />{ui.badge}</div>
-                <div className="mt-3 text-xl font-semibold">{ui.body}</div>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/80"><Search size={12} />{ui.inspect}</div>
-              </div>
-            </div>
-          </div>
-
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-[2rem] border border-white/12 bg-white/8 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center gap-3 text-[#86ECFF]"><ShieldCheck size={20} /><span className="text-sm font-semibold uppercase tracking-[0.2em]">{ui.certifiedTitle}</span></div>
