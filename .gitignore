@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+.opencode/
+vite.out.log
+vite.err.log
