@@ -356,9 +356,9 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
       <div className="absolute inset-0">
         <ParticleBackground />
         <AnimatePresence mode="wait">
-          <motion.img key={currentHeroIndex} src={images.hero[currentHeroIndex]} alt="Electrical service showcase" className="h-full w-full object-cover opacity-[0.34]" initial={{ opacity: 0, scale: reduceMotion ? 1 : 1.04 }} animate={{ opacity: 0.34, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0.1 : 1.2, ease: 'easeOut' }} />
+          <motion.img key={currentHeroIndex} src={images.hero[currentHeroIndex]} alt="Electrical service showcase" className="h-full w-full object-cover opacity-[0.52] md:opacity-[0.4]" initial={{ opacity: 0, scale: reduceMotion ? 1 : 1.04 }} animate={{ opacity: reduceMotion ? 0.52 : 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0.1 : 1.2, ease: 'easeOut' }} />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(0,7,43,0.96)_0%,rgba(0,7,43,0.86)_42%,rgba(0,7,43,0.32)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(0,7,43,0.78)_0%,rgba(0,7,43,0.58)_46%,rgba(0,7,43,0.12)_100%)] md:bg-[linear-gradient(112deg,rgba(0,7,43,0.88)_0%,rgba(0,7,43,0.72)_42%,rgba(0,7,43,0.24)_100%)]" />
         <TechLines />
         <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,rgba(134,236,255,0.24),transparent_68%)]" />
         <motion.div animate={{ x: ['-10%', '110%'] }} transition={{ duration: 7, repeat: Infinity, ease: 'linear' }} className="absolute top-[14%] h-24 w-52 -rotate-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)] blur-2xl" />
