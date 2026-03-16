@@ -1,220 +1,380 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useSpring, AnimatePresence, useTransform } from 'motion/react';
-import { 
-  Zap, Power, Cable, Wrench, Cpu, Wind, PlusCircle, Lightbulb, Home, 
-  BatteryCharging, ToggleRight, Phone, Mail, MapPin, ChevronDown, 
-  Menu, X, Globe, ArrowRight, CheckCircle2, Instagram, Facebook, Linkedin
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import {
+  ArrowRight,
+  BatteryCharging,
+  Cable,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Cpu,
+  Facebook,
+  Globe,
+  Home,
+  Instagram,
+  Lightbulb,
+  Linkedin,
+  Mail,
+  MapPin,
+  Menu,
+  Phone,
+  PlusCircle,
+  Power,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  ToggleRight,
+  Wind,
+  Wrench,
+  X,
+  Zap,
 } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
-import { EN, ES, CONTACT_INFO } from './constants';
-import { Content } from './types';
+import { CONTACT_INFO, EN, ES } from './constants';
+import type { Content } from './types';
 
-// --- Image Generation Helper ---
-const generateImage = async (prompt: string): Promise<string | null> => {
+type SectionImages = {
+  hero: string[];
+  about: string;
+  services: Record<string, string>;
+};
+
+type LightboxState = {
+  src: string;
+  alt: string;
+} | null;
+
+const ICONS = {
+  Zap,
+  Power,
+  Cable,
+  Wrench,
+  Cpu,
+  Wind,
+  PlusCircle,
+  Lightbulb,
+  Home,
+  BatteryCharging,
+  ToggleRight,
+};
+
+const BRAND_LOGO = '/brand/jpower-mark.svg';
+
+const createPlaceholderDataUrl = (title: string, subtitle: string) => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 840">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00072B"/>
+          <stop offset="55%" stop-color="#004F8F"/>
+          <stop offset="100%" stop-color="#0090C6"/>
+        </linearGradient>
+        <radialGradient id="glow" cx="0.85" cy="0.2" r="0.8">
+          <stop offset="0%" stop-color="rgba(134,236,255,0.95)"/>
+          <stop offset="100%" stop-color="rgba(134,236,255,0)"/>
+        </radialGradient>
+      </defs>
+      <rect width="1280" height="840" rx="42" fill="url(#bg)"/>
+      <rect x="56" y="56" width="1168" height="728" rx="36" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.14)"/>
+      <circle cx="1040" cy="160" r="260" fill="url(#glow)"/>
+      <path d="M318 160h144l-94 174h108L338 612l56-186H286l32-92h100z" fill="rgba(255,255,255,0.92)"/>
+      <text x="92" y="650" fill="white" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="700">${title}</text>
+      <text x="92" y="716" fill="rgba(255,255,255,0.72)" font-family="Inter, Arial, sans-serif" font-size="32">${subtitle}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+const getFallbackImages = (): SectionImages => ({
+  hero: [
+    '/generated/hero-1.png',
+    '/generated/hero-2.png',
+    '/generated/hero-3.png',
+  ],
+  about: '/generated/about.png',
+  services: {
+    emergency: '/generated/service-emergency.png',
+    generators: '/generated/service-generators.png',
+    wiring: '/generated/service-wiring.png',
+    panels: '/generated/service-panels.png',
+    lighting: '/generated/service-lighting.png',
+    'ev-charging': '/generated/service-ev-charging.png',
+  },
+});
+
+const requestGeneratedImage = async (prompt: string, size = '1536x1024') => {
+  const response = await fetch('/api/generate-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, size }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || 'Image generation failed.');
+  }
+
+  const payload = await response.json();
+  return payload.image as string;
+};
+
+const getImagePrompts = () => ({
+  hero: [
+    'Luxury Miami residence with a licensed electrician inspecting a modern electrical panel, premium interior lighting, clean composition, realistic photography, no text.',
+    'Professional electrician troubleshooting wiring in a bright modern home, organized cables, safety equipment visible, cinematic but realistic, no text.',
+    'Electric vehicle charging station being installed in an upscale garage, sleek electrical components, premium residential setting, realistic photography, no text.',
+  ],
+  about:
+    'Exterior of a modern Miami home at blue hour with architectural lighting and a subtle sense of high-end electrical craftsmanship, realistic photography, no text.',
+  services: {
+    emergency: 'Emergency residential electrical service in progress, electrician with testing tools and open panel, urgent but professional atmosphere, realistic photography, no text.',
+    generators: 'Backup generator installed beside a contemporary Florida home, clean landscaping and electrical conduit details, realistic photography, no text.',
+    wiring: 'Detailed residential electrical wiring installation with organized conduits and precise craftsmanship, realistic photography, no text.',
+    panels: 'Upgraded electrical panel with labeled breakers, neat cable management, clean professional finish, realistic photography, no text.',
+    lighting: 'High-end indoor lighting installation in a contemporary living room, warm layered light, elegant fixtures, realistic photography, no text.',
+    'ev-charging': 'Home EV charger mounted in a refined garage, premium electric vehicle nearby, clean installation, realistic photography, no text.',
+  },
+});
+
+const generateSectionImages = async () => {
+  const fallback = getFallbackImages();
+  const prompts = getImagePrompts();
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: [{ parts: [{ text: prompt }] }],
-    });
+    const hero = await Promise.all(
+      prompts.hero.map(async (prompt, index) => {
+        try {
+          return await requestGeneratedImage(prompt);
+        } catch {
+          return fallback.hero[index];
+        }
+      }),
+    );
 
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
-    }
-    return null;
-  } catch (error) {
-    console.error("Image generation failed:", error);
-    return null;
+    const about = await requestGeneratedImage(prompts.about, '1024x1024').catch(() => fallback.about);
+    const serviceEntries = await Promise.all(
+      Object.entries(prompts.services).map(async ([key, prompt]) => {
+        try {
+          return [key, await requestGeneratedImage(prompt, '1024x1024')] as const;
+        } catch {
+          return [key, fallback.services[key] || fallback.about] as const;
+        }
+      }),
+    );
+
+    return {
+      hero,
+      about,
+      services: Object.fromEntries(serviceEntries),
+    };
+  } catch {
+    return fallback;
   }
 };
 
-// --- Components ---
-
-const DynamicBackground = () => {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      <motion.div 
-        animate={{ 
-          x: [0, 100, 0], 
-          y: [0, 50, 0],
-          scale: [1, 1.2, 1]
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"
-      />
-      <motion.div 
-        animate={{ 
-          x: [0, -80, 0], 
-          y: [0, 120, 0],
-          scale: [1.2, 1, 1.2]
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[20%] -right-[5%] w-[35%] h-[35%] bg-primary/5 rounded-full blur-[100px]"
-      />
-      <motion.div 
-        animate={{ 
-          x: [0, 50, 0], 
-          y: [0, -100, 0],
-          scale: [1, 1.3, 1]
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-        className="absolute -bottom-[10%] left-[20%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[110px]"
-      />
-    </div>
-  );
-};
-
-const CustomCursor = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
+const ParticleBackground = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+    if (reduceMotion) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let frame = 0;
+    const particles = Array.from({ length: 34 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      size: Math.random() * 2.4 + 0.8,
+      speedX: (Math.random() - 0.5) * 0.0012,
+      speedY: (Math.random() - 0.5) * 0.0012,
+      alpha: Math.random() * 0.45 + 0.18,
+    }));
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
     };
 
-    const onMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (['A', 'BUTTON', 'INPUT', 'TEXTAREA'].includes(target.tagName) || target.closest('button') || target.closest('a')) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
+    const draw = () => {
+      frame += 1;
+      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+      particles.forEach((particle, index) => {
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        if (particle.x < 0) particle.x = 1;
+        if (particle.x > 1) particle.x = 0;
+        if (particle.y < 0) particle.y = 1;
+        if (particle.y > 1) particle.y = 0;
+
+        const x = particle.x * canvas.offsetWidth;
+        const y = particle.y * canvas.offsetHeight;
+        const pulse = 0.3 + Math.sin((frame + index * 11) * 0.03) * 0.12;
+        const radius = particle.size + pulse;
+
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 6);
+        gradient.addColorStop(0, `rgba(134,236,255,${particle.alpha})`);
+        gradient.addColorStop(1, 'rgba(134,236,255,0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      for (let i = 0; i < particles.length; i += 1) {
+        for (let j = i + 1; j < particles.length; j += 1) {
+          const ax = particles[i].x * canvas.offsetWidth;
+          const ay = particles[i].y * canvas.offsetHeight;
+          const bx = particles[j].x * canvas.offsetWidth;
+          const by = particles[j].y * canvas.offsetHeight;
+          const distance = Math.hypot(ax - bx, ay - by);
+          if (distance < 120) {
+            ctx.strokeStyle = `rgba(0,144,198,${(1 - distance / 120) * 0.14})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+          }
+        }
       }
+
+      requestAnimationFrame(draw);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseover', onMouseOver);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseover', onMouseOver);
-    };
-  }, []);
+    resize();
+    draw();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [reduceMotion]);
 
-  return (
-    <>
-      <div 
-        className="custom-cursor" 
-        style={{ 
-          left: `${position.x}px`, 
-          top: `${position.y}px`,
-          transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`
-        }} 
-      />
-      <div 
-        className="custom-cursor-follower" 
-        style={{ 
-          left: `${position.x}px`, 
-          top: `${position.y}px`,
-          transform: `translate(-50%, -50%) scale(${isHovering ? 2 : 1})`,
-          opacity: isHovering ? 0.5 : 1
-        }} 
-      />
-    </>
-  );
+  if (reduceMotion) return null;
+  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full opacity-70" />;
 };
 
-const Navbar = ({ lang, setLang, content }: { lang: 'EN' | 'ES', setLang: (l: 'EN' | 'ES') => void, content: Content }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
+const TechLines = ({ soft = false }: { soft?: boolean }) => (
+  <div className={`pointer-events-none absolute inset-0 overflow-hidden ${soft ? 'opacity-50' : 'opacity-90'}`}>
+    <div className="absolute left-0 right-0 top-[18%] h-px bg-[linear-gradient(90deg,transparent,rgba(134,236,255,0.45),transparent)]" />
+    <div className="absolute left-0 right-0 top-[62%] h-px bg-[linear-gradient(90deg,transparent,rgba(0,144,198,0.3),transparent)]" />
+    <div className="absolute bottom-10 left-10 h-24 w-24 border-b border-l border-primary/25" />
+    <div className="absolute right-10 top-10 h-24 w-24 border-r border-t border-[#86ECFF]/25" />
+    <motion.div
+      animate={{ x: ['-8%', '108%'] }}
+      transition={{ duration: soft ? 8 : 6, repeat: Infinity, ease: 'linear' }}
+      className="absolute top-[30%] h-px w-36 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent)]"
+    />
+  </div>
+);
+
+const Lightbox = ({ item, onClose }: { item: LightboxState; onClose: () => void }) => (
+  <AnimatePresence>
+    {item && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-[#00072B]/92 p-4 backdrop-blur-md"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.92, opacity: 0 }}
+          transition={{ type: 'spring', damping: 22, stiffness: 210 }}
+          className="relative w-full max-w-5xl"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button onClick={onClose} className="absolute -top-12 right-0 text-white/70 transition hover:text-white" aria-label="Close preview">
+            <X size={28} />
+          </button>
+          <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/6 shadow-[0_30px_100px_rgba(0,0,0,0.35)]">
+            <img src={item.src} alt={item.alt} className="max-h-[82vh] w-full object-cover" />
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+const Brand = ({ dark = false, lang = 'EN' }: { dark?: boolean; lang?: 'EN' | 'ES' }) => (
+  <div className="flex items-center gap-3">
+    <div className={`relative flex h-[4.9rem] w-[3.05rem] shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border p-1.5 ${dark ? 'border-dark/10 bg-white shadow-[0_16px_40px_rgba(0,7,43,0.12)]' : 'border-white/20 bg-white/12 shadow-[0_20px_45px_rgba(0,144,198,0.22)] backdrop-blur-md'}`}>
+      <img src={BRAND_LOGO} alt="JPower Electric logo" className="h-full w-full object-contain object-center" />
+    </div>
+    <div>
+      <div className={`font-display text-xl font-bold tracking-[-0.04em] md:text-2xl ${dark ? 'text-dark' : 'text-white'}`}>JPower Electric</div>
+      <div className={`${dark ? 'text-dark/50' : 'text-white/58'} text-xs uppercase tracking-[0.24em]`}>
+        {lang === 'EN' ? 'Miami Electrical Services' : 'Servicios Electricos en Miami'}
+      </div>
+    </div>
+  </div>
+);
+
+const Navbar = ({ lang, setLang, content }: { lang: 'EN' | 'ES'; setLang: (lang: 'EN' | 'ES') => void; content: Content }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const navLinks = [
-    { name: content.nav.services, href: "#services" },
-    { name: content.nav.about, href: "#about" },
-    { name: content.nav.faq, href: "#faq" },
-    { name: content.nav.contact, href: "#contact" },
+  const links = [
+    { label: content.nav.about, href: '#about' },
+    { label: content.nav.services, href: '#services' },
+    { label: content.nav.faq, href: '#faq' },
+    { label: content.nav.contact, href: '#contact' },
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/90 backdrop-blur-md py-4 shadow-sm' : 'bg-transparent py-8'}`}>
-      <motion.div 
-        className="fixed top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
-        style={{ scaleX }}
-      />
-      <div className="container mx-auto px-6 flex justify-between items-center">
-        <motion.a 
-          href="#" 
-          className="text-2xl font-display font-bold text-dark flex items-center gap-2"
-          whileHover={{ scale: 1.05 }}
-        >
-          <Zap className="text-primary fill-primary" />
-          <span>JPower<span className="text-primary">Electric</span></span>
-        </motion.a>
+    <nav className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
+      <div className={`mx-auto flex max-w-7xl items-center justify-between rounded-[1.75rem] border px-4 py-3 transition-all duration-300 md:px-6 ${isScrolled ? 'border-white/20 bg-[#00072B]/80 shadow-[0_20px_70px_rgba(0,7,43,0.32)] backdrop-blur-xl' : 'border-white/10 bg-[#00072B]/36 backdrop-blur-md'}`}>
+        <a href="#" aria-label="JPower Electric home">
+          <Brand lang={lang} />
+        </a>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href} 
-              className="text-dark font-medium animated-underline hover:text-primary transition-colors"
-            >
-              {link.name}
+        <div className="hidden items-center gap-8 md:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="animated-underline text-sm font-medium text-white/82 transition-colors hover:text-white">
+              {link.label}
             </a>
           ))}
-          <button 
-            onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-dark/5 hover:bg-dark/10 transition-colors font-medium"
-          >
-            <Globe size={18} />
+          <button onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/14">
+            <Globe size={16} />
             {lang}
           </button>
-          <a href={`tel:${CONTACT_INFO.phone}`} className="btn-primary py-3 px-6 text-sm">
+          <a href={`tel:${CONTACT_INFO.phone}`} className="btn-primary px-6 py-3 text-sm">
             {content.hero.cta}
           </a>
         </div>
 
-        {/* Mobile Toggle */}
-        <button className="md:hidden text-dark" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
+        <button className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white md:hidden" onClick={() => setIsMenuOpen((open) => !open)} aria-label="Toggle navigation">
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-white shadow-xl p-8 flex flex-col gap-6 md:hidden"
-          >
-            {navLinks.map((link) => (
-              <a 
-                key={link.name} 
-                href={link.href} 
-                className="text-xl font-medium text-dark"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.name}
-              </a>
-            ))}
-            <div className="flex justify-between items-center pt-4 border-t border-dark/10">
-              <button 
-                onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')}
-                className="flex items-center gap-2 font-medium"
-              >
-                <Globe size={20} />
-                {lang === 'EN' ? 'English' : 'Español'}
-              </button>
-              <a href={`tel:${CONTACT_INFO.phone}`} className="text-primary font-bold flex items-center gap-2">
-                <Phone size={20} />
-                {CONTACT_INFO.phone}
-              </a>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mx-auto mt-3 max-w-7xl rounded-[1.75rem] border border-white/15 bg-[#00072B]/94 p-6 shadow-[0_24px_80px_rgba(0,7,43,0.35)] backdrop-blur-xl md:hidden">
+            <div className="flex flex-col gap-5">
+              {links.map((link) => (
+                <a key={link.href} href={link.href} className="text-lg font-medium text-white" onClick={() => setIsMenuOpen(false)}>
+                  {link.label}
+                </a>
+              ))}
+              <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-5">
+                <button onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')} className="inline-flex items-center gap-2 text-sm font-semibold text-white/80">
+                  <Globe size={18} />
+                  {lang === 'EN' ? 'English' : 'Espanol'}
+                </button>
+                <a href={`tel:${CONTACT_INFO.phone}`} className="text-sm font-semibold text-[#86ECFF]">{CONTACT_INFO.phone}</a>
+              </div>
             </div>
           </motion.div>
         )}
@@ -223,518 +383,386 @@ const Navbar = ({ lang, setLang, content }: { lang: 'EN' | 'ES', setLang: (l: 'E
   );
 };
 
-const Counter = ({ value, suffix }: { value: number, suffix: string }) => {
+const Counter = ({ value, suffix }: { value: number; suffix: string }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          let start = 0;
-          const end = value;
-          const duration = 2000;
-          const increment = end / (duration / 16);
-          
-          const timer = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-              setCount(end);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(start));
-            }
-          }, 16);
-          setHasAnimated(true);
-        }
-      },
-      { threshold: 0.5 }
-    );
+    let frame = 0;
+    const totalFrames = 72;
+    const tick = () => {
+      frame += 1;
+      const progress = Math.min(frame / totalFrames, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(value * eased));
+      if (progress < 1) window.requestAnimationFrame(tick);
+    };
 
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, hasAnimated]);
+    window.requestAnimationFrame(tick);
+  }, [value]);
 
-  return (
-    <div ref={ref} className="text-4xl md:text-5xl font-display font-bold text-primary">
-      {count}{suffix}
-    </div>
-  );
+  return <div className="font-display text-4xl font-bold tracking-[-0.05em] text-primary md:text-5xl">{count}{suffix}</div>;
 };
 
 const ServiceIcon = ({ name }: { name: string }) => {
-  const icons: Record<string, any> = {
-    Zap, Power, Cable, Wrench, Cpu, Wind, PlusCircle, Lightbulb, Home, BatteryCharging, ToggleRight
-  };
-  const Icon = icons[name] || Zap;
-  return <Icon className="w-8 h-8 text-primary" />;
+  const Icon = ICONS[name as keyof typeof ICONS] || Zap;
+  return <Icon className="h-6 w-6 text-primary" />;
 };
 
-export default function App() {
-  const [lang, setLang] = useState<'EN' | 'ES'>('EN');
-  const [images, setImages] = useState<{ 
-    hero: string[], 
-    about: string | null,
-    services: Record<string, string>
-  }>({ 
-    hero: [], 
-    about: null,
-    services: {}
-  });
-  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [loadingImages, setLoadingImages] = useState(true);
-  const content = lang === 'EN' ? EN : ES;
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -100]);
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      setLoadingImages(true);
-      const [h1, h2, h3, aboutImg, s1, s2, s3] = await Promise.all([
-        generateImage("A professional electrician working on a modern, clean electrical panel in a high-end Miami home. Cinematic lighting, professional, high quality, 16:9 aspect ratio."),
-        generateImage("Close up of modern smart home electrical wiring and high-tech components. Professional, clean, technical, high quality, 16:9 aspect ratio."),
-        generateImage("A professional electrician installing a modern EV charging station in a luxury garage. Professional, high quality, 16:9 aspect ratio."),
-        generateImage("A modern luxury house in Miami at night with beautiful architectural lighting. Professional photography, high quality, 4:3 aspect ratio."),
-        generateImage("Industrial electrical installation with complex wiring and panels. Professional, high quality, 1:1 aspect ratio."),
-        generateImage("Modern backup generator installed outside a luxury home. Professional, high quality, 1:1 aspect ratio."),
-        generateImage("High-end indoor designer lighting installation in a modern living room. Professional, high quality, 1:1 aspect ratio.")
-      ]);
-
-      setImages({ 
-        hero: [h1, h2, h3].filter(Boolean) as string[], 
-        about: aboutImg,
-        services: {
-          "Emergency": s1 || '',
-          "Generators": s2 || '',
-          "Lighting Installations": s3 || ''
-        }
-      });
-      setLoadingImages(false);
-    };
-    fetchImages();
-  }, []);
-
-  useEffect(() => {
-    if (images.hero.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentHeroIndex((prev) => (prev + 1) % images.hero.length);
-      }, 6000);
-      return () => clearInterval(interval);
-    }
-  }, [images.hero]);
+const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Content; images: SectionImages; currentHeroIndex: number; lang: 'EN' | 'ES' }) => {
+  const reduceMotion = useReducedMotion();
+  const ui = lang === 'EN'
+    ? {
+        badge: 'Field-ready visuals',
+        body: 'Each visual now matches the actual section copy.',
+        certifiedTitle: 'Certified work',
+        certifiedBody: 'Panels, circuits, lighting, and high-priority repairs handled with code-first discipline.',
+        contactTitle: 'Fast contact',
+        contactBody: 'Clear next steps, quick scheduling, and emergency availability when the issue cannot wait.',
+        inspect: 'Interactive service preview',
+      }
+    : {
+        badge: 'Visuales por servicio',
+        body: 'Cada imagen ahora corresponde al copy real de su seccion.',
+        certifiedTitle: 'Trabajo certificado',
+        certifiedBody: 'Paneles, circuitos, iluminacion y reparaciones prioritarias ejecutadas con criterio de codigo.',
+        contactTitle: 'Contacto rapido',
+        contactBody: 'Pasos claros, agenda rapida y disponibilidad para emergencias cuando el problema no puede esperar.',
+        inspect: 'Vista previa interactiva',
+      };
 
   return (
-    <div className="relative">
-      <CustomCursor />
-      <DynamicBackground />
-      <Navbar lang={lang} setLang={setLang} content={content} />
+    <section className="relative overflow-hidden bg-dark px-4 pb-18 pt-32 text-white md:px-6 md:pb-24 md:pt-36">
+      <div className="absolute inset-0">
+        <ParticleBackground />
+        <AnimatePresence mode="wait">
+          <motion.img key={currentHeroIndex} src={images.hero[currentHeroIndex]} alt="Electrical service showcase" className="h-full w-full object-cover opacity-[0.34]" initial={{ opacity: 0, scale: reduceMotion ? 1 : 1.04 }} animate={{ opacity: 0.34, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0.1 : 1.2, ease: 'easeOut' }} />
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(0,7,43,0.96)_0%,rgba(0,7,43,0.86)_42%,rgba(0,7,43,0.32)_100%)]" />
+        <TechLines />
+        <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,rgba(134,236,255,0.24),transparent_68%)]" />
+        <motion.div animate={{ x: ['-10%', '110%'] }} transition={{ duration: 7, repeat: Infinity, ease: 'linear' }} className="absolute top-[14%] h-24 w-52 -rotate-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)] blur-2xl" />
+      </div>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-dark">
-        {/* Background Slideshow */}
-        <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait">
-            {images.hero.length > 0 ? (
-              <motion.img 
-                key={currentHeroIndex}
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 0.4, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2 }}
-                src={images.hero[currentHeroIndex]} 
-                alt="Professional Electrical Work" 
-                className="absolute inset-0 w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              loadingImages && <div className="w-full h-full bg-dark/50 animate-pulse" />
-            )}
-          </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/80 to-transparent" />
-          
-          {/* Slideshow Indicators */}
-          {images.hero.length > 1 && (
-            <div className="absolute bottom-12 left-6 flex gap-3 z-20">
-              {images.hero.map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`h-1 transition-all duration-500 rounded-full ${i === currentHeroIndex ? 'w-8 bg-primary' : 'w-4 bg-white/20'}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-end">
+        <div className="max-w-3xl">
+          <span className="eyebrow border-white/14 bg-white/8 text-[#86ECFF]">{content.hero.eyebrow}</span>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mt-6 max-w-4xl font-display text-[clamp(3rem,7vw,6.6rem)] font-bold leading-[0.9] tracking-[-0.055em]">
+            {content.hero.title}
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} className="mt-6 max-w-2xl text-lg leading-8 text-white/76 md:text-xl">
+            {content.hero.subtitle}
+          </motion.p>
 
-        <motion.div 
-          style={{ y: y1 }}
-          className="absolute inset-0 opacity-20 pointer-events-none"
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#0090C6_0%,transparent_50%)]" />
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse delay-700" />
-        </motion.div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-5xl">
-            <motion.h1 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-white font-display font-bold leading-[0.9] mb-8"
-              style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}
-            >
-              {content.hero.title}
-            </motion.h1>
-            
-            <motion.p 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="text-white/70 text-lg md:text-2xl max-w-2xl mb-12 leading-relaxed"
-            >
-              {content.hero.subtitle}
-            </motion.p>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-              className="flex flex-wrap gap-6"
-            >
-              <a href={`tel:${CONTACT_INFO.phone}`} className="btn-primary text-lg px-10 py-5 flex items-center gap-3">
-                <Phone size={24} />
-                {content.hero.cta}
-              </a>
-              <a href="#services" className="btn-outline border-white/30 text-white hover:bg-white hover:text-dark px-10 py-5 text-lg">
-                {content.nav.services}
-              </a>
-            </motion.div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {content.hero.highlights.map((highlight) => (
+              <div key={highlight} className="rounded-full border border-white/14 bg-white/8 px-4 py-2 text-sm font-medium text-white/82 backdrop-blur-sm">{highlight}</div>
+            ))}
           </div>
-        </div>
 
-        <motion.div 
-          style={{ y: y2 }}
-          className="absolute right-[-10%] bottom-[-10%] w-[60%] aspect-square opacity-10 pointer-events-none"
-        >
-          <Zap className="w-full h-full text-primary" strokeWidth={0.5} />
-        </motion.div>
-      </section>
+          <div className="mt-10 flex flex-wrap gap-4">
+            <a href={`tel:${CONTACT_INFO.phone}`} className="btn-primary px-8 py-4 text-base md:text-lg"><Phone size={20} />{content.hero.cta}</a>
+            <a href="#services" className="btn-outline border-white/20 bg-white/7 px-8 py-4 text-base text-white hover:border-white hover:bg-white hover:text-dark md:text-lg">{content.hero.secondaryCta}</a>
+          </div>
 
-      {/* About Section */}
-      <section id="about" className="py-24 bg-white relative">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="section-title text-dark">{content.about.title}</h2>
-              <p className="text-dark/70 text-xl leading-relaxed mb-12">
-                {content.about.description}
-              </p>
-              
-              <div className="grid grid-cols-2 gap-8 mb-12 lg:mb-0">
-                {content.about.stats.map((stat, i) => (
-                  <div key={i} className="p-6 rounded-2xl bg-dark/5 border border-dark/5 hover:border-primary/20 transition-colors">
-                    <Counter value={stat.value} suffix={stat.suffix} />
-                    <div className="text-dark/60 font-medium mt-2">{stat.label}</div>
-                  </div>
-                ))}
+          <div className="mt-14 grid gap-4 sm:grid-cols-3">
+            {content.hero.metrics.map((metric) => (
+              <div key={metric.label} className="rounded-[1.8rem] border border-white/12 bg-white/8 p-5 backdrop-blur-md">
+                <div className="font-display text-3xl font-bold tracking-[-0.05em] text-[#86ECFF]">{metric.value}</div>
+                <div className="mt-2 text-sm text-white/68">{metric.label}</div>
               </div>
-            </motion.div>
-
-            <div className="relative group">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="aspect-[4/3] rounded-[3rem] overflow-hidden shadow-2xl relative z-10"
-              >
-                {images.about ? (
-                  <img 
-                    src={images.about} 
-                    alt="Modern Miami Home" 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-dark/5 animate-pulse flex items-center justify-center">
-                    <Zap className="text-primary/20 w-20 h-20 animate-bounce" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-dark/40 to-transparent" />
-              </motion.div>
-              
-              {/* Decorative Elements */}
-              <div className="absolute -top-6 -right-6 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-6 -left-6 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4 }}
-                className="absolute -bottom-8 -right-8 bg-white p-6 rounded-3xl shadow-xl z-20 hidden md:block border border-dark/5"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
-                    <CheckCircle2 />
-                  </div>
-                  <div>
-                    <div className="font-bold text-dark">Certified Experts</div>
-                    <div className="text-dark/60 text-sm">State of Florida</div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-          <div className="mt-24 grid lg:grid-cols-2 gap-8">
-            {content.about.values.map((value, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ x: 10 }}
-                className="flex gap-6 p-8 rounded-3xl bg-dark/5 border border-dark/5"
-              >
-                <div className="text-primary font-display font-bold text-3xl">0{i + 1}.</div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">{value.title}</h3>
-                  <p className="text-dark/70 leading-relaxed">{value.description}</p>
-                </div>
-              </motion.div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-24 bg-dark text-white overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="section-title text-white"
-            >
-              {content.services.title}
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-white/60 text-xl"
-            >
-              {content.services.subtitle}
-            </motion.p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {content.services.items.map((service, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group overflow-hidden relative"
-              >
-                {/* Service Image Background (Optional) */}
-                {images.services[service.title] && (
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500">
-                    <img 
-                      src={images.services[service.title]} 
-                      alt={service.title} 
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                )}
-
-                <div className="relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                    <ServiceIcon name={service.icon} />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 flex items-center justify-between">
-                    {service.title}
-                    <ArrowRight className="opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all text-primary" />
-                  </h3>
-                  <p className="text-white/60 leading-relaxed">
-                    {service.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="py-24 bg-white">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <h2 className="section-title text-center mb-16">{content.faq.title}</h2>
-          <div className="space-y-4">
-            {content.faq.items.map((item, i) => (
-              <FAQItem key={i} question={item.question} answer={item.answer} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="py-24 bg-dark text-white relative">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16">
-            <div>
-              <h2 className="section-title text-white">{content.contact.title}</h2>
-              <div className="space-y-8 mt-12">
-                <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Phone className="text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-white/50 text-sm uppercase tracking-widest font-bold">Phone</div>
-                    <a href={`tel:${CONTACT_INFO.phone}`} className="text-2xl font-bold hover:text-primary transition-colors">{CONTACT_INFO.phone}</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Mail className="text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-white/50 text-sm uppercase tracking-widest font-bold">Email</div>
-                    <a href={`mailto:${CONTACT_INFO.email}`} className="text-2xl font-bold hover:text-primary transition-colors">{CONTACT_INFO.email}</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                    <MapPin className="text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-white/50 text-sm uppercase tracking-widest font-bold">Address</div>
-                    <div className="text-2xl font-bold">{CONTACT_INFO.address}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-16">
-                {[Facebook, Instagram, Linkedin].map((Icon, i) => (
-                  <motion.a 
-                    key={i}
-                    href="#"
-                    whileHover={{ y: -5, backgroundColor: '#0090C6' }}
-                    className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center transition-colors"
-                  >
-                    <Icon size={20} />
-                  </motion.a>
-                ))}
+        <div className="grid gap-4 lg:pb-3">
+          <div className="glass-card overflow-hidden rounded-[2.25rem] bg-white/12 p-4 text-white">
+            <div className="relative overflow-hidden rounded-[1.65rem] border border-white/12">
+              <img src={images.hero[currentHeroIndex]} alt="Current electrical service highlight" className="aspect-[4/3] w-full object-cover" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.02)_0%,rgba(0,7,43,0.64)_100%)]" />
+              <div className="absolute inset-0 border border-white/10" />
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#86ECFF]"><Sparkles size={14} />{ui.badge}</div>
+                <div className="mt-3 text-xl font-semibold">{ui.body}</div>
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/80"><Search size={12} />{ui.inspect}</div>
               </div>
             </div>
+          </div>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="p-10 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl"
-            >
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-white/50 uppercase tracking-wider">{content.contact.name}</label>
-                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-primary transition-colors" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-white/50 uppercase tracking-wider">{content.contact.email}</label>
-                    <input type="email" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-primary transition-colors" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-white/50 uppercase tracking-wider">{content.contact.message}</label>
-                  <textarea rows={4} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-primary transition-colors resize-none"></textarea>
-                </div>
-                <button className="btn-primary w-full py-5 text-lg">
-                  {content.contact.send}
-                </button>
-              </form>
-            </motion.div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="rounded-[2rem] border border-white/12 bg-white/8 p-6 backdrop-blur-md">
+              <div className="mb-4 flex items-center gap-3 text-[#86ECFF]"><ShieldCheck size={20} /><span className="text-sm font-semibold uppercase tracking-[0.2em]">{ui.certifiedTitle}</span></div>
+              <p className="text-sm leading-7 text-white/72">{ui.certifiedBody}</p>
+            </div>
+            <div className="rounded-[2rem] border border-white/12 bg-white/8 p-6 backdrop-blur-md">
+              <div className="mb-4 flex items-center gap-3 text-[#86ECFF]"><Clock3 size={20} /><span className="text-sm font-semibold uppercase tracking-[0.2em]">{ui.contactTitle}</span></div>
+              <p className="text-sm leading-7 text-white/72">{ui.contactBody}</p>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 bg-dark border-t border-white/5 text-white/40">
-        <div className="container mx-auto px-6 flex flex-col md:row justify-between items-center gap-8">
-          <div className="text-xl font-display font-bold text-white flex items-center gap-2">
-            <Zap className="text-primary fill-primary" size={20} />
-            <span>JPower<span className="text-primary">Electric</span></span>
-          </div>
-          <p>© {new Date().getFullYear()} JPower Electric. All rights reserved.</p>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-          </div>
-        </div>
-      </footer>
-
-      {/* Floating Elements */}
-      <motion.a 
-        href={CONTACT_INFO.whatsapp}
-        target="_blank"
-        rel="noopener noreferrer"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-[#25D366] text-white rounded-full shadow-2xl flex items-center justify-center z-40"
-      >
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-        </svg>
-      </motion.a>
-    </div>
+      </div>
+    </section>
   );
-}
+};
+const AboutSection = ({ content, image, lang }: { content: Content; image: string; lang: 'EN' | 'ES' }) => (
+  <section id="about" className="relative px-4 py-20 md:px-6 md:py-24">
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(0,144,198,0.08),transparent_26%)]" />
+    <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,0.95fr)_1.05fr] lg:items-center">
+      <div className="space-y-6">
+        <span className="eyebrow">{content.about.eyebrow}</span>
+        <h2 className="section-title max-w-3xl text-dark">{content.about.title}</h2>
+        <p className="max-w-2xl text-lg leading-8 text-dark/68">{content.about.description}</p>
 
-interface FAQItemProps {
-  question: string;
-  answer: string;
-}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {content.about.stats.map((stat) => (
+            <motion.div key={stat.label} whileHover={{ y: -4 }} className="panel p-6">
+              <Counter value={stat.value} suffix={stat.suffix} />
+              <div className="mt-2 text-sm font-medium uppercase tracking-[0.18em] text-dark/48">{stat.label}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
 
-const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
-  const [isOpen, setIsOpen] = useState(false);
+      <div className="space-y-5">
+        <div className="panel overflow-hidden p-3">
+          <div className="relative overflow-hidden rounded-[1.75rem]">
+            <img src={image} alt="JPower Electric work example" className="aspect-[4/3] w-full object-cover transition duration-700 hover:scale-[1.03]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.04)_0%,rgba(0,7,43,0.58)_100%)]" />
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-6 text-white">
+              <div>
+                <div className="text-xs uppercase tracking-[0.25em] text-[#86ECFF]">{lang === 'EN' ? 'Service standard' : 'Estandar de servicio'}</div>
+                <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Clean installs, safe execution, premium finish.' : 'Instalaciones limpias, ejecucion segura y acabado premium.'}</div>
+              </div>
+              <div className="hidden rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 md:block">Miami, FL</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {content.about.values.map((value, index) => (
+            <motion.div key={value.title} whileHover={{ y: -4 }} className="rounded-[1.75rem] border border-dark/8 bg-[#F8FCFF] p-6">
+              <div className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">0{index + 1}</div>
+              <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-dark">{value.title}</h3>
+              <p className="mt-3 text-base leading-7 text-dark/68">{value.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const ServicesSection = ({ content, images, lang, onPreview }: { content: Content; images: Record<string, string>; lang: 'EN' | 'ES'; onPreview: (item: LightboxState) => void }) => {
+  const featured = content.services.items.filter((item) => item.featured);
+  const remaining = content.services.items.filter((item) => !item.featured);
+
   return (
-    <div className="border-b border-dark/10">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full py-6 flex justify-between items-center text-left hover:text-primary transition-colors"
-      >
-        <span className="text-xl font-bold">{question}</span>
-        <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
-          <ChevronDown />
-        </motion.div>
+    <section id="services" className="relative overflow-hidden bg-dark px-4 py-20 text-white md:px-6 md:py-24">
+      <TechLines soft />
+      <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(0,144,198,0.18),transparent_70%)]" />
+      <div className="mx-auto max-w-7xl">
+        <div className="max-w-3xl">
+          <span className="eyebrow border-white/12 bg-white/8 text-[#86ECFF]">{content.services.eyebrow}</span>
+          <h2 className="section-title mt-6 text-white">{content.services.title}</h2>
+          <p className="max-w-2xl text-lg leading-8 text-white/66">{content.services.subtitle}</p>
+        </div>
+
+        <div className="mt-14 grid gap-6 lg:grid-cols-3">
+          {featured.map((service) => (
+            <motion.button key={service.id} type="button" whileHover={{ y: -8 }} onClick={() => onPreview({ src: images[service.id], alt: service.title })} className="group relative overflow-hidden rounded-[2rem] border border-white/12 bg-white/6 text-left shadow-[0_24px_70px_rgba(0,7,43,0.22)]">
+              <div className="relative">
+                <img src={images[service.id]} alt={service.title} className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.04)_5%,rgba(0,7,43,0.88)_100%)]" />
+                <motion.div animate={{ x: ['-120%', '120%'] }} transition={{ duration: 4.8, repeat: Infinity, ease: 'linear', delay: 0.4 }} className="absolute top-0 h-full w-24 rotate-[18deg] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)] blur-md" />
+                <div className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 backdrop-blur-md"><ServiceIcon name={service.icon} /></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#86ECFF]">{lang === 'EN' ? 'Featured' : 'Destacado'}</div>
+                  <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{service.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-white/68">{service.description}</p>
+                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white/86"><Search size={15} />{lang === 'EN' ? 'Click to expand image' : 'Haz clic para ampliar la imagen'}</div>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {remaining.map((service, index) => (
+            <motion.div key={service.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: index * 0.04 }} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 transition duration-300 hover:border-primary/40 hover:bg-white/8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/14"><ServiceIcon name={service.icon} /></div>
+              <h3 className="mt-5 text-lg font-semibold tracking-[-0.03em]">{service.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-white/62">{service.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-[1.7rem] border border-dark/8 bg-white px-6 py-2 shadow-[0_18px_50px_rgba(0,7,43,0.06)]">
+      <button className="flex w-full items-center justify-between gap-4 py-5 text-left" onClick={() => setIsOpen((open) => !open)}>
+        <span className="text-lg font-semibold text-dark md:text-xl">{question}</span>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="text-primary" /></motion.div>
       </button>
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <p className="pb-6 text-dark/60 leading-relaxed text-lg">
-              {answer}
-            </p>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+            <p className="pb-5 pr-8 text-base leading-7 text-dark/68">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
+
+const ContactSection = ({ content, heroImage, lang }: { content: Content; heroImage: string; lang: 'EN' | 'ES' }) => (
+  <section id="contact" className="relative overflow-hidden bg-[#031137] px-4 py-20 text-white md:px-6 md:py-24">
+    <TechLines soft />
+    <div className="absolute inset-x-0 bottom-0 h-52 bg-[radial-gradient(circle_at_bottom,rgba(134,236,255,0.14),transparent_72%)]" />
+    <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="space-y-6">
+        <span className="eyebrow border-white/14 bg-white/8 text-[#86ECFF]">{content.contact.eyebrow}</span>
+        <h2 className="section-title text-white">{content.contact.title}</h2>
+        <p className="max-w-xl text-lg leading-8 text-white/68">{content.contact.description}</p>
+
+        <div className="space-y-4">
+          {[
+            { icon: Phone, label: lang === 'EN' ? 'Phone' : 'Telefono', value: CONTACT_INFO.phone, href: `tel:${CONTACT_INFO.phone}` },
+            { icon: Mail, label: 'Email', value: CONTACT_INFO.email, href: `mailto:${CONTACT_INFO.email}` },
+            { icon: MapPin, label: lang === 'EN' ? 'Address' : 'Direccion', value: CONTACT_INFO.address, href: '#' },
+          ].map((item) => (
+            <a key={item.label} href={item.href} className="flex items-center gap-4 rounded-[1.5rem] border border-white/10 bg-white/6 p-4 transition hover:bg-white/9">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/18"><item.icon className="text-[#86ECFF]" size={20} /></div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/46">{item.label}</div>
+                <div className="mt-1 text-lg font-semibold text-white">{item.value}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/6 p-3">
+          <div className="relative overflow-hidden rounded-[1.5rem]">
+            <img src={heroImage} alt="JPower Electric visual" className="aspect-[5/4] w-full object-cover" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.08)_0%,rgba(0,7,43,0.74)_100%)]" />
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <div className="text-xs uppercase tracking-[0.22em] text-[#86ECFF]">{content.contact.availability}</div>
+              <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Ready for quotes, upgrades, and urgent calls.' : 'Listos para cotizaciones, mejoras y llamadas urgentes.'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-[2.2rem] border border-white/10 bg-white/7 p-7 shadow-[0_28px_80px_rgba(0,7,43,0.28)] backdrop-blur-xl md:p-10">
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="space-y-2"><span className="text-sm font-semibold uppercase tracking-[0.18em] text-white/46">{content.contact.name}</span><input type="text" className="w-full rounded-2xl border border-white/12 bg-white/7 px-5 py-4 text-white placeholder:text-white/28" /></label>
+          <label className="space-y-2"><span className="text-sm font-semibold uppercase tracking-[0.18em] text-white/46">{content.contact.email}</span><input type="email" className="w-full rounded-2xl border border-white/12 bg-white/7 px-5 py-4 text-white placeholder:text-white/28" /></label>
+        </div>
+        <div className="mt-5"><label className="space-y-2"><span className="text-sm font-semibold uppercase tracking-[0.18em] text-white/46">{content.contact.phone}</span><input type="tel" className="mt-2 w-full rounded-2xl border border-white/12 bg-white/7 px-5 py-4 text-white placeholder:text-white/28" /></label></div>
+        <div className="mt-5"><label className="space-y-2"><span className="text-sm font-semibold uppercase tracking-[0.18em] text-white/46">{content.contact.message}</span><textarea rows={7} className="mt-2 w-full rounded-2xl border border-white/12 bg-white/7 px-5 py-4 text-white placeholder:text-white/28" /></label></div>
+        <button className="btn-primary mt-8 w-full py-5 text-base md:text-lg"><ArrowRight size={20} />{content.contact.send}</button>
+        <div className="mt-7 flex flex-wrap items-center gap-3">{[Facebook, Instagram, Linkedin].map((Icon, index) => (<a key={index} href="#" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-white/7 text-white/78 transition hover:bg-primary hover:text-white"><Icon size={18} /></a>))}</div>
+      </div>
+    </div>
+  </section>
+);
+export default function App() {
+  const [lang, setLang] = useState<'EN' | 'ES'>('EN');
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [images, setImages] = useState<SectionImages>(getFallbackImages);
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
+  const [lightboxItem, setLightboxItem] = useState<LightboxState>(null);
+
+  const content = useMemo(() => (lang === 'EN' ? EN : ES), [lang]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadImages = async () => {
+      setIsLoadingImages(true);
+      const generated = await generateSectionImages();
+      if (isMounted) {
+        setImages(generated);
+        setIsLoadingImages(false);
+      }
+    };
+    loadImages();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentHeroIndex((index) => (index + 1) % images.hero.length);
+    }, 5500);
+    return () => window.clearInterval(interval);
+  }, [images.hero.length]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setLightboxItem(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white text-dark">
+      <Navbar lang={lang} setLang={setLang} content={content} />
+      <HeroSection content={content} images={images} currentHeroIndex={currentHeroIndex} lang={lang} />
+
+      <div className="border-y border-dark/6 bg-[#F5FBFF] px-4 py-5 md:px-6">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm font-semibold uppercase tracking-[0.22em] text-dark/48">
+          <span className="inline-flex items-center gap-2 text-primary"><CheckCircle2 size={18} />{lang === 'EN' ? 'Visual refresh by section' : 'Actualizacion visual por seccion'}</span>
+          <span>{lang === 'EN' ? 'Palette preserved from the current site' : 'Paleta conservada del sitio actual'}</span>
+          <span>{isLoadingImages ? (lang === 'EN' ? 'Generating local visuals...' : 'Generando visuales locales...') : (lang === 'EN' ? 'Image prompts loaded for local preview' : 'Prompts de imagen listos para la vista local')}</span>
+        </div>
+      </div>
+
+      <AboutSection content={content} image={images.about} lang={lang} />
+      <ServicesSection content={content} images={images.services} lang={lang} onPreview={setLightboxItem} />
+
+      <section id="faq" className="px-4 py-20 md:px-6 md:py-24">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-center">
+            <span className="eyebrow">{content.faq.title}</span>
+            <h2 className="section-title mt-6 text-dark">{lang === 'EN' ? 'Answers before the call.' : 'Respuestas antes de llamar.'}</h2>
+          </div>
+          <div className="mt-12 space-y-4">
+            {content.faq.items.map((item) => (
+              <FAQItem key={item.question} question={item.question} answer={item.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <ContactSection content={content} heroImage={images.hero[0]} lang={lang} />
+
+      <footer className="border-t border-white/8 bg-dark px-4 py-10 text-white/48 md:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <Brand lang={lang} />
+          <div className="flex flex-wrap gap-6 text-sm">
+            <a href="#about" className="transition hover:text-white">{content.nav.about}</a>
+            <a href="#services" className="transition hover:text-white">{content.nav.services}</a>
+            <a href="#contact" className="transition hover:text-white">{content.nav.contact}</a>
+          </div>
+        </div>
+      </footer>
+
+      <motion.a href={CONTACT_INFO.whatsapp} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_22px_45px_rgba(37,211,102,0.4)]" aria-label="Open WhatsApp">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+        </svg>
+      </motion.a>
+
+      <Lightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
+    </div>
+  );
+}
+
