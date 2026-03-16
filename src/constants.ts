@@ -11,7 +11,7 @@ export const EN: Content = {
     eyebrow: 'Licensed electrical contractors in Miami',
     title: 'Sharp electrical work for homes, remodels, and fast-response calls.',
     subtitle:
-      'JPower Electric delivers residential, commercial, and industrial service with clean execution, code-compliant installations, and clear communication from quote to final test.',
+      'JPower Electric handles urgent repairs, panel upgrades, rewiring, lighting, generators, and EV charging with clear communication and code-compliant work.',
     cta: 'Call Now',
     secondaryCta: 'Explore Services',
     highlights: [
@@ -26,10 +26,10 @@ export const EN: Content = {
     ],
   },
   about: {
-    eyebrow: 'Why clients keep calling us back',
-    title: 'Professional crews, dependable timelines, and work that feels finished.',
+    eyebrow: '01 Why JPower',
+    title: 'Clear communication, reliable scheduling, and work done the right way.',
     description:
-      'From panel upgrades to lighting plans, JPower Electric builds dependable systems with a clean jobsite standard and a service rhythm that respects your property, your schedule, and your safety.',
+      'We show up prepared, explain the work clearly, protect the property, and finish with safe installations that are built to last.',
     stats: [
       { label: 'Years Experience', value: 15, suffix: '+' },
       { label: 'Projects Done', value: 1200, suffix: '+' },
@@ -56,9 +56,9 @@ export const EN: Content = {
     ],
   },
   services: {
-    eyebrow: 'Built around the real requests we handle every week',
-    title: 'Electrical services designed for speed, clarity, and long-term reliability.',
-    subtitle: 'From emergency calls to panel upgrades and EV charging, we handle the work clients request most.',
+    eyebrow: '02 Core Services',
+    title: 'The work clients call us for most, organized by real service needs.',
+    subtitle: 'Open each service card to see related work, common requests, and where that solution fits best.',
     items: [
       { id: 'emergency', title: 'Emergency', description: 'Rapid response for urgent electrical issues, ensuring safety and immediate solutions.', icon: 'Zap', featured: true },
       { id: 'generators', title: 'Generators', description: 'Installation and maintenance of backup generators to keep your power running during outages.', icon: 'Power', featured: true },
@@ -74,7 +74,7 @@ export const EN: Content = {
     ],
   },
   faq: {
-    title: 'Frequently Asked Questions',
+    title: '03 Common Questions',
     items: [
       { question: 'Are you licensed and insured?', answer: 'Yes. JPower Electric is certified by the State of Florida and carries insurance coverage for residential and commercial work.' },
       { question: 'Do you offer emergency services?', answer: 'Yes. We handle urgent issues that need a fast, safety-first response and clear next steps on site.' },
@@ -83,14 +83,14 @@ export const EN: Content = {
     ],
   },
   contact: {
-    eyebrow: 'Ready for the next job',
-    title: 'Tell us what needs attention and we will line up the right service.',
-    description: 'Use the form for quotes, upgrades, remodels, service calls, or urgent electrical issues. We will get back to you quickly.',
+    eyebrow: '04 Request A Quote',
+    title: 'Start the conversation on WhatsApp and get a faster estimate.',
+    description: 'Send us photos, project details, or the problem you are facing. We will guide you to the right service and next step.',
     name: 'Full Name',
     email: 'Email Address',
     phone: 'Phone Number',
     message: 'Project Details',
-    send: 'Send Message',
+    send: 'Request Estimate On WhatsApp',
     success: 'Message sent successfully! We will contact you soon.',
     availability: 'Mon-Sat | Fast scheduling and emergency support',
   },
@@ -107,7 +107,7 @@ export const ES: Content = {
     eyebrow: 'Contratistas electricos con licencia en Miami',
     title: 'Trabajo electrico preciso para hogares, remodelaciones y llamadas urgentes.',
     subtitle:
-      'JPower Electric ofrece servicio residencial, comercial e industrial con ejecucion limpia, instalaciones bajo codigo y comunicacion clara desde la cotizacion hasta la prueba final.',
+      'JPower Electric resuelve reparaciones urgentes, paneles, recableado, iluminacion, generadores y cargadores EV con comunicacion clara y trabajo conforme al codigo.',
     cta: 'Llamar Ahora',
     secondaryCta: 'Ver Servicios',
     highlights: [
@@ -122,10 +122,10 @@ export const ES: Content = {
     ],
   },
   about: {
-    eyebrow: 'Por que los clientes vuelven a llamarnos',
-    title: 'Equipos profesionales, tiempos confiables y trabajos que se sienten terminados.',
+    eyebrow: '01 Por Que JPower',
+    title: 'Comunicacion clara, agenda confiable y trabajo bien hecho.',
     description:
-      'Desde paneles electricos hasta planes de iluminacion, JPower Electric construye sistemas confiables con un estandar de trabajo limpio y un ritmo de servicio que respeta su propiedad, su tiempo y su seguridad.',
+      'Llegamos preparados, explicamos el trabajo con claridad, cuidamos la propiedad y entregamos instalaciones seguras pensadas para durar.',
     stats: [
       { label: 'Anos de Experiencia', value: 15, suffix: '+' },
       { label: 'Proyectos Realizados', value: 1200, suffix: '+' },
@@ -152,9 +152,9 @@ export const ES: Content = {
     ],
   },
   services: {
-    eyebrow: 'Pensado alrededor de las solicitudes reales que atendemos cada semana',
-    title: 'Servicios electricos disenados para rapidez, claridad y confiabilidad a largo plazo.',
-    subtitle: 'Desde emergencias hasta paneles electricos y cargadores EV, resolvemos los trabajos que mas nos solicitan.',
+    eyebrow: '02 Servicios Principales',
+    title: 'Los trabajos que mas nos solicitan, organizados por necesidad real.',
+    subtitle: 'Abre cada tarjeta para ver trabajos relacionados, solicitudes comunes y donde encaja mejor cada servicio.',
     items: [
       { id: 'emergency', title: 'Emergencia', description: 'Respuesta rapida para problemas electricos urgentes, garantizando seguridad y soluciones inmediatas.', icon: 'Zap', featured: true },
       { id: 'generators', title: 'Generadores', description: 'Instalacion y mantenimiento de generadores de respaldo para mantener su energia durante apagones.', icon: 'Power', featured: true },
@@ -170,7 +170,7 @@ export const ES: Content = {
     ],
   },
   faq: {
-    title: 'Preguntas Frecuentes',
+    title: '03 Preguntas Comunes',
     items: [
       { question: 'Estan licenciados y asegurados?', answer: 'Si. JPower Electric esta certificado por el Estado de Florida y cuenta con cobertura de seguro para trabajos residenciales y comerciales.' },
       { question: 'Ofrecen servicios de emergencia?', answer: 'Si. Atendemos problemas urgentes con una respuesta rapida, segura y con pasos claros en sitio.' },
@@ -179,22 +179,23 @@ export const ES: Content = {
     ],
   },
   contact: {
-    eyebrow: 'Listos para el proximo trabajo',
-    title: 'Cuentanos que necesitas y alineamos el servicio correcto.',
-    description: 'Usa el formulario para cotizaciones, mejoras, remodelaciones, visitas tecnicas o problemas electricos urgentes. Te responderemos rapido.',
+    eyebrow: '04 Pide Tu Presupuesto',
+    title: 'Escribenos por WhatsApp y recibe una estimacion mas rapida.',
+    description: 'Envia fotos, detalles del proyecto o el problema que tienes. Te guiamos al servicio correcto y al siguiente paso.',
     name: 'Nombre Completo',
     email: 'Correo Electronico',
     phone: 'Telefono',
     message: 'Detalles del Proyecto',
-    send: 'Enviar Mensaje',
+    send: 'Pedir Presupuesto Por WhatsApp',
     success: 'Mensaje enviado con exito. Nos pondremos en contacto pronto.',
     availability: 'Lun-Sab | Agenda rapida y soporte de emergencia',
   },
 };
 
 export const CONTACT_INFO = {
-  phone: '+17868739169',
+  phone: '+1 305-525-1268',
   email: 'jpowerelc@gmail.com',
   address: 'Miami, FL 33054',
-  whatsapp: 'https://wa.me/17868739169',
+  whatsapp: 'https://wa.me/13055251268',
+  facebook: 'https://www.facebook.com/share/1C1Yn6HSye/',
 };
