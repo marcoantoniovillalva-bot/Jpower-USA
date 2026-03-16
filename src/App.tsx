@@ -412,9 +412,11 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
     <section className="relative overflow-hidden bg-dark px-4 pb-18 pt-32 text-white md:px-6 md:pb-24 md:pt-36">
       <div className="absolute inset-0">
         <ParticleBackground />
-        <AnimatePresence mode="wait">
-          <motion.img key={currentHeroIndex} src={images.hero[currentHeroIndex]} alt="Electrical service showcase" className="h-full w-full object-cover opacity-[0.52] md:opacity-[0.4]" initial={{ opacity: 0, scale: reduceMotion ? 1 : 1.04 }} animate={{ opacity: reduceMotion ? 0.52 : 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0.1 : 1.2, ease: 'easeOut' }} />
-        </AnimatePresence>
+        <img
+          src="/reviews/gifhero.gif"
+          alt="JPower Electric work showcase"
+          className="h-full w-full object-cover opacity-[0.52] md:opacity-[0.4]"
+        />
         <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(0,7,43,0.78)_0%,rgba(0,7,43,0.58)_46%,rgba(0,7,43,0.12)_100%)] md:bg-[linear-gradient(112deg,rgba(0,7,43,0.88)_0%,rgba(0,7,43,0.72)_42%,rgba(0,7,43,0.24)_100%)]" />
         <TechLines />
         <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,rgba(134,236,255,0.24),transparent_68%)]" />
