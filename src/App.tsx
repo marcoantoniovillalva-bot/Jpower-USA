@@ -57,7 +57,7 @@ const getFallbackImages = (): SectionImages => ({
     '/reviews/cocina.webp',
     '/reviews/piscina.webp',
     '/reviews/techo.webp',
-    '/reviews/lapadario.webp',
+    '/reviews/lampadario.webp',
   ],
   about: '/generated/about.png',
   services: {
@@ -79,9 +79,10 @@ const GALLERY_IMAGES = [
   '/reviews/respuesta.webp',
   '/reviews/servicio rapido y limpio.webp',
   '/reviews/techo.webp',
+  '/reviews/techito.webp',
   '/reviews/cocina.webp',
   '/reviews/piscina.webp',
-  '/reviews/lapadario.webp',
+  '/reviews/lampadario.webp',
 ];
 
 const RELATED_SERVICE_MAP: Record<string, string[]> = {
@@ -739,36 +740,72 @@ const TestimonialsSection = ({ content }: { content: Content }) => {
 };
 
 const OurWorksSection = ({ lang }: { lang: 'EN' | 'ES' }) => {
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const card = scrollRef.current.querySelector<HTMLElement>('[data-card]');
+    const amount = card ? card.offsetWidth + 16 : 300;
+    scrollRef.current.scrollBy({ left: dir === 'right' ? amount : -amount, behavior: 'smooth' });
+  };
+
+  const navigate = (dir: 'prev' | 'next') => {
+    if (lightboxIndex === null) return;
+    const next = dir === 'next'
+      ? (lightboxIndex + 1) % GALLERY_IMAGES.length
+      : (lightboxIndex - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length;
+    setLightboxIndex(next);
+  };
 
   return (
-    <section id="works" className="relative px-4 py-20 md:px-6 md:py-24">
+    <section id="works" className="relative overflow-hidden px-4 py-20 md:px-6 md:py-24">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(0,144,198,0.07),transparent_30%)]" />
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12">
-          <span className="eyebrow">{lang === 'EN' ? '05 Our Work' : '05 Nuestros Trabajos'}</span>
-          <h2 className="section-title mt-6 text-dark">
-            {lang === 'EN' ? 'Real projects. Real results.' : 'Proyectos reales. Resultados reales.'}
-          </h2>
+
+        {/* Header + arrows */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-10">
+          <div>
+            <span className="eyebrow">{lang === 'EN' ? '05 Our Work' : '05 Nuestros Trabajos'}</span>
+            <h2 className="section-title mt-6 text-dark">
+              {lang === 'EN' ? 'Real projects. Real results.' : 'Proyectos reales. Resultados reales.'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => scroll('left')} aria-label="Previous" className="flex h-11 w-11 items-center justify-center rounded-full border border-dark/12 bg-white shadow-sm text-dark/60 transition hover:bg-primary hover:text-white hover:border-primary">
+              <ChevronDown className="rotate-90" size={20} />
+            </button>
+            <button onClick={() => scroll('right')} aria-label="Next" className="flex h-11 w-11 items-center justify-center rounded-full border border-dark/12 bg-white shadow-sm text-dark/60 transition hover:bg-primary hover:text-white hover:border-primary">
+              <ChevronDown className="-rotate-90" size={20} />
+            </button>
+          </div>
         </div>
 
-        <div className="columns-2 gap-4 md:columns-3 lg:columns-4">
+        {/* Horizontal scroll track */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-3"
+          style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {GALLERY_IMAGES.map((src, i) => (
             <motion.button
               key={src}
+              data-card
               type="button"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => setLightbox(src)}
-              className="group mb-4 block w-full overflow-hidden rounded-[1.5rem] border border-dark/8 bg-dark/4"
+              transition={{ delay: i * 0.04 }}
+              onClick={() => setLightboxIndex(i)}
+              className="group relative shrink-0 overflow-hidden rounded-[1.5rem] border border-dark/8"
+              style={{ scrollSnapAlign: 'start', width: '260px', height: '320px' }}
             >
               <img
                 src={src}
                 alt={`JPower work ${i + 1}`}
-                className="w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-110"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.06] group-hover:brightness-110"
               />
+              <div className="absolute inset-0 bg-dark/0 transition duration-300 group-hover:bg-dark/20" />
             </motion.button>
           ))}
         </div>
@@ -776,30 +813,43 @@ const OurWorksSection = ({ lang }: { lang: 'EN' | 'ES' }) => {
 
       {/* Lightbox */}
       <AnimatePresence>
-        {lightbox && (
+        {lightboxIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
-            onClick={() => setLightbox(null)}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/92 p-4 backdrop-blur-sm"
+            onClick={() => setLightboxIndex(null)}
           >
             <motion.div
               initial={{ scale: 0.92 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.92 }}
               transition={{ type: 'spring', damping: 24, stiffness: 220 }}
-              className="relative max-h-[90vh] max-w-5xl"
+              className="relative flex max-h-[90vh] max-w-5xl items-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <img src={lightbox} alt="Work detail" className="max-h-[85vh] w-auto rounded-[1.5rem] object-contain shadow-2xl" />
-              <button
-                onClick={() => setLightbox(null)}
-                className="absolute -right-3 -top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-dark shadow-lg transition hover:scale-110"
-                aria-label="Close"
-              >
-                <X size={18} />
+              <img
+                src={GALLERY_IMAGES[lightboxIndex]}
+                alt="Work detail"
+                className="max-h-[85vh] w-auto rounded-[1.5rem] object-contain shadow-2xl"
+              />
+              {/* Prev */}
+              <button onClick={() => navigate('prev')} aria-label="Previous photo" className="absolute -left-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-dark shadow-lg transition hover:bg-white">
+                <ChevronDown className="rotate-90" size={20} />
               </button>
+              {/* Next */}
+              <button onClick={() => navigate('next')} aria-label="Next photo" className="absolute -right-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-dark shadow-lg transition hover:bg-white">
+                <ChevronDown className="-rotate-90" size={20} />
+              </button>
+              {/* Close */}
+              <button onClick={() => setLightboxIndex(null)} aria-label="Close" className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-dark shadow-lg transition hover:scale-110">
+                <X size={16} />
+              </button>
+              {/* Counter */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                {lightboxIndex + 1} / {GALLERY_IMAGES.length}
+              </div>
             </motion.div>
           </motion.div>
         )}
