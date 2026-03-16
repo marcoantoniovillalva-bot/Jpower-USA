@@ -9,3 +9,4 @@ coverage/
 .opencode/
 vite.out.log
 vite.err.log
+.vercel
