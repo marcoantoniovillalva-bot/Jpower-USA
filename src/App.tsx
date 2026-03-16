@@ -74,8 +74,6 @@ const GALLERY_IMAGES = [
   '/reviews/cableado 1.webp',
   '/reviews/cableado 2.webp',
   '/reviews/led techo.webp',
-  '/reviews/problema.webp',
-  '/reviews/problema 1.webp',
   '/reviews/respuesta.webp',
   '/reviews/servicio rapido y limpio.webp',
   '/reviews/techo.webp',
