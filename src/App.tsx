@@ -54,20 +54,35 @@ const BRAND_LOGO = '/brand/jpower-square.png';
 
 const getFallbackImages = (): SectionImages => ({
   hero: [
-    '/generated/hero-1.png',
-    '/generated/hero-2.png',
-    '/generated/hero-3.png',
+    '/reviews/cocina.webp',
+    '/reviews/piscina.webp',
+    '/reviews/techo.webp',
+    '/reviews/lapadario.webp',
   ],
   about: '/generated/about.png',
   services: {
-    emergency: '/generated/service-emergency.png',
+    emergency: '/reviews/jesus.webp',
     generators: '/generated/service-generators.png',
-    wiring: '/generated/service-wiring.png',
-    panels: '/generated/service-panels.png',
+    wiring: '/reviews/piscina 2.webp',
+    panels: '/reviews/cabeado 0.webp',
     lighting: '/generated/service-lighting.png',
     'ev-charging': '/generated/service-ev-charging.png',
   },
 });
+
+const GALLERY_IMAGES = [
+  '/reviews/cableado 1.webp',
+  '/reviews/cableado 2.webp',
+  '/reviews/led techo.webp',
+  '/reviews/problema.webp',
+  '/reviews/problema 1.webp',
+  '/reviews/respuesta.webp',
+  '/reviews/servicio rapido y limpio.webp',
+  '/reviews/techo.webp',
+  '/reviews/cocina.webp',
+  '/reviews/piscina.webp',
+  '/reviews/lapadario.webp',
+];
 
 const RELATED_SERVICE_MAP: Record<string, string[]> = {
   emergency: ['repairs'],
@@ -723,6 +738,76 @@ const TestimonialsSection = ({ content }: { content: Content }) => {
   );
 };
 
+const OurWorksSection = ({ lang }: { lang: 'EN' | 'ES' }) => {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  return (
+    <section id="works" className="relative px-4 py-20 md:px-6 md:py-24">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(0,144,198,0.07),transparent_30%)]" />
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-12">
+          <span className="eyebrow">{lang === 'EN' ? '05 Our Work' : '05 Nuestros Trabajos'}</span>
+          <h2 className="section-title mt-6 text-dark">
+            {lang === 'EN' ? 'Real projects. Real results.' : 'Proyectos reales. Resultados reales.'}
+          </h2>
+        </div>
+
+        <div className="columns-2 gap-4 md:columns-3 lg:columns-4">
+          {GALLERY_IMAGES.map((src, i) => (
+            <motion.button
+              key={src}
+              type="button"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              onClick={() => setLightbox(src)}
+              className="group mb-4 block w-full overflow-hidden rounded-[1.5rem] border border-dark/8 bg-dark/4"
+            >
+              <img
+                src={src}
+                alt={`JPower work ${i + 1}`}
+                className="w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-110"
+              />
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            onClick={() => setLightbox(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.92 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.92 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 220 }}
+              className="relative max-h-[90vh] max-w-5xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img src={lightbox} alt="Work detail" className="max-h-[85vh] w-auto rounded-[1.5rem] object-contain shadow-2xl" />
+              <button
+                onClick={() => setLightbox(null)}
+                className="absolute -right-3 -top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-dark shadow-lg transition hover:scale-110"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+};
+
 const ContactSection = ({ content, heroImage, lang }: { content: Content; heroImage: string; lang: 'EN' | 'ES' }) => (
   <section id="contact" className="relative overflow-hidden bg-[#031137] px-4 py-20 text-white md:px-6 md:py-24">
     <TechLines soft />
@@ -814,6 +899,7 @@ export default function App() {
       <ServicesSection content={content} images={images.services} lang={lang} onPreview={setDetailItem} />
       <HowItWorksSection content={content} />
       <TestimonialsSection content={content} />
+      <OurWorksSection lang={lang} />
 
       <section id="faq" className="px-4 py-20 md:px-6 md:py-24">
         <div className="mx-auto max-w-4xl">
