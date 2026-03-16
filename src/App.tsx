@@ -58,7 +58,7 @@ const ICONS = {
   ToggleRight,
 };
 
-const BRAND_LOGO = '/brand/jpower-mark.svg';
+const BRAND_LOGO = '/brand/jpower-square.png';
 
 const createPlaceholderDataUrl = (title: string, subtitle: string) => {
   const svg = `
@@ -302,7 +302,7 @@ const Lightbox = ({ item, onClose }: { item: LightboxState; onClose: () => void 
 );
 const Brand = ({ dark = false, lang = 'EN' }: { dark?: boolean; lang?: 'EN' | 'ES' }) => (
   <div className="flex items-center gap-3">
-    <div className={`relative flex h-[4.9rem] w-[3.05rem] shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border p-1.5 ${dark ? 'border-dark/10 bg-white shadow-[0_16px_40px_rgba(0,7,43,0.12)]' : 'border-white/20 bg-white/12 shadow-[0_20px_45px_rgba(0,144,198,0.22)] backdrop-blur-md'}`}>
+    <div className={`relative flex h-[4.35rem] w-[4.35rem] shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border p-1 ${dark ? 'border-dark/10 bg-white shadow-[0_16px_40px_rgba(0,7,43,0.12)]' : 'border-white/20 bg-white/12 shadow-[0_20px_45px_rgba(0,144,198,0.22)] backdrop-blur-md'}`}>
       <img src={BRAND_LOGO} alt="JPower Electric logo" className="h-full w-full object-contain object-center" />
     </div>
     <div>
