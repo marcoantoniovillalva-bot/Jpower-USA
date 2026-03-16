@@ -198,7 +198,7 @@ const ServiceDetailModal = ({
         close: 'Close details',
       }
     : {
-        title: 'Descubre mas',
+        title: 'Descubre más',
         related: 'Trabajos relacionados incluidos en este servicio',
         cta: 'Pedir presupuesto por WhatsApp',
         close: 'Cerrar detalles',
@@ -211,7 +211,7 @@ const ServiceDetailModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-[#00072B]/92 p-4 backdrop-blur-md"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-[#00072B]/92 p-3 md:p-4 backdrop-blur-md"
         onClick={onClose}
       >
         <motion.div
@@ -219,13 +219,15 @@ const ServiceDetailModal = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.92, opacity: 0 }}
           transition={{ type: 'spring', damping: 22, stiffness: 210 }}
-          className="relative w-full max-w-5xl"
+          className="relative w-full max-w-5xl max-h-[88vh] overflow-y-auto"
           onClick={(event) => event.stopPropagation()}
         >
-          <button onClick={onClose} className="absolute -top-12 right-0 text-white/70 transition hover:text-white" aria-label={detailCopy.close}>
-            <X size={28} />
-          </button>
           <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#04133C] shadow-[0_30px_100px_rgba(0,0,0,0.35)]">
+            <div className="sticky top-0 z-10 flex justify-end border-b border-white/10 bg-[#04133C]/96 px-4 py-3 backdrop-blur-md md:px-6">
+              <button onClick={onClose} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white/74 transition hover:bg-white/12 hover:text-white" aria-label={detailCopy.close}>
+                <X size={22} />
+              </button>
+            </div>
             <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
               <div className="relative min-h-[280px]">
                 <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
@@ -276,7 +278,7 @@ const Brand = ({ dark = false, lang = 'EN' }: { dark?: boolean; lang?: 'EN' | 'E
     <div>
       <div className={`font-display text-xl font-bold tracking-[-0.04em] md:text-2xl ${dark ? 'text-dark' : 'text-white'}`}>JPower Electric</div>
       <div className={`${dark ? 'text-dark/50' : 'text-white/58'} text-xs uppercase tracking-[0.24em]`}>
-        {lang === 'EN' ? 'Miami Electrical Services' : 'Servicios Electricos en Miami'}
+        {lang === 'EN' ? 'Miami Electrical Services' : 'Servicios Eléctricos en Miami'}
       </div>
     </div>
   </div>
@@ -339,7 +341,7 @@ const Navbar = ({ lang, setLang, content }: { lang: 'EN' | 'ES'; setLang: (lang:
               <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-5">
                 <button onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')} className="inline-flex items-center gap-2 text-sm font-semibold text-white/80">
                   <Globe size={18} />
-                  {lang === 'EN' ? 'English' : 'Espanol'}
+                  {lang === 'EN' ? 'English' : 'Español'}
                 </button>
                 <a href={`tel:${CONTACT_INFO.phone}`} className="text-sm font-semibold text-[#86ECFF]">{CONTACT_INFO.phone}</a>
               </div>
@@ -387,9 +389,9 @@ const HeroSection = ({ content, images, currentHeroIndex, lang }: { content: Con
       }
     : {
         certifiedTitle: 'Trabajo certificado',
-        certifiedBody: 'Paneles, circuitos, iluminacion y reparaciones prioritarias ejecutadas con criterio de codigo.',
-        contactTitle: 'Contacto rapido',
-        contactBody: 'Pasos claros, agenda rapida y disponibilidad para emergencias cuando el problema no puede esperar.',
+        certifiedBody: 'Paneles, circuitos, iluminación y reparaciones prioritarias ejecutadas conforme al código.',
+        contactTitle: 'Contacto rápido',
+        contactBody: 'Pasos claros, agenda rápida y disponibilidad para emergencias cuando el problema no puede esperar.',
       };
 
   return (
@@ -461,14 +463,6 @@ const AboutSection = ({ content, image, lang }: { content: Content; image: strin
         <h2 className="section-title max-w-3xl text-dark">{content.about.title}</h2>
         <p className="max-w-2xl text-lg leading-8 text-dark/68">{content.about.description}</p>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {content.about.stats.map((stat) => (
-            <motion.div key={stat.label} whileHover={{ y: -4 }} className="panel p-6">
-              <Counter value={stat.value} suffix={stat.suffix} />
-              <div className="mt-2 text-sm font-medium uppercase tracking-[0.18em] text-dark/48">{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
       </div>
 
       <div className="space-y-5">
@@ -478,8 +472,8 @@ const AboutSection = ({ content, image, lang }: { content: Content; image: strin
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.04)_0%,rgba(0,7,43,0.58)_100%)]" />
             <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-6 text-white">
               <div>
-                <div className="text-xs uppercase tracking-[0.25em] text-[#86ECFF]">{lang === 'EN' ? 'Service standard' : 'Estandar de servicio'}</div>
-                <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Clean installs, safe execution, and code-compliant results.' : 'Instalaciones limpias, ejecucion segura y resultados conforme al codigo.'}</div>
+                <div className="text-xs uppercase tracking-[0.25em] text-[#86ECFF]">{lang === 'EN' ? 'Service standard' : 'Estándar de servicio'}</div>
+                <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Clean installs, safe execution, and code-compliant results.' : 'Instalaciones limpias, ejecución segura y resultados conforme al código.'}</div>
               </div>
               <div className="hidden rounded-full border border-white/14 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 md:block">Miami, FL</div>
             </div>
@@ -526,7 +520,7 @@ const ServicesSection = ({ content, images, lang, onPreview }: { content: Conten
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#86ECFF]">{lang === 'EN' ? 'Featured' : 'Destacado'}</div>
                   <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{service.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-white/68">{service.description}</p>
-                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white/86"><ArrowRight size={15} />{lang === 'EN' ? 'Discover more' : 'Descubre mas'}</div>
+                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white/86"><ArrowRight size={15} />{lang === 'EN' ? 'Discover more' : 'Descubre más'}</div>
                 </div>
               </div>
             </motion.button>
@@ -569,9 +563,9 @@ const ContactSection = ({ content, heroImage, lang }: { content: Content; heroIm
 
         <div className="space-y-4">
           {[
-            { icon: Phone, label: lang === 'EN' ? 'Phone' : 'Telefono', value: CONTACT_INFO.phone, href: `tel:${CONTACT_INFO.phone}` },
+            { icon: Phone, label: lang === 'EN' ? 'Phone' : 'Teléfono', value: CONTACT_INFO.phone, href: `tel:${CONTACT_INFO.phone}` },
             { icon: Mail, label: 'Email', value: CONTACT_INFO.email, href: `mailto:${CONTACT_INFO.email}` },
-            { icon: MapPin, label: lang === 'EN' ? 'Address' : 'Direccion', value: CONTACT_INFO.address, href: '#' },
+            { icon: MapPin, label: lang === 'EN' ? 'Address' : 'Dirección', value: CONTACT_INFO.address, href: '#' },
           ].map((item) => (
             <a key={item.label} href={item.href} className="flex items-center gap-4 rounded-[1.5rem] border border-white/10 bg-white/6 p-4 transition hover:bg-white/9">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/18"><item.icon className="text-[#86ECFF]" size={20} /></div>
@@ -591,7 +585,7 @@ const ContactSection = ({ content, heroImage, lang }: { content: Content; heroIm
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,7,43,0.08)_0%,rgba(0,7,43,0.74)_100%)]" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <div className="text-xs uppercase tracking-[0.22em] text-[#86ECFF]">{content.contact.availability}</div>
-              <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Send your project or issue and we will guide you fast.' : 'Envia tu proyecto o problema y te guiamos rapido.'}</div>
+              <div className="mt-2 text-2xl font-semibold">{lang === 'EN' ? 'Send your project or issue and we will guide you fast.' : 'Envía tu proyecto o problema y te guiamos rápido.'}</div>
             </div>
           </div>
         </div>
@@ -602,7 +596,7 @@ const ContactSection = ({ content, heroImage, lang }: { content: Content; heroIm
         <p className="mt-4 text-center text-sm leading-7 text-white/62">
           {lang === 'EN'
             ? 'You can send photos, videos, the address, and a short description to speed up the estimate.'
-            : 'Puedes enviar fotos, videos, la direccion y una breve descripcion para acelerar el presupuesto.'}
+            : 'Puedes enviar fotos, videos, la dirección y una breve descripción para acelerar el presupuesto.'}
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <a href={CONTACT_INFO.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-white/7 text-white/78 transition hover:bg-primary hover:text-white">
